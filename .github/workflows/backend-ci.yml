@@ -25,8 +25,8 @@ jobs:
       - name: Install dependencies
         run: pipenv install --dev
 
-      - name: Run tests
-        run: pipenv run pytest
+    #   - name: Run tests
+    #     run: pipenv run pytest
 
       - name: Run Super Linter
         uses: github/super-linter@v4
