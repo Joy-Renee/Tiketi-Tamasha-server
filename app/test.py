@@ -1,7 +1,9 @@
 def cat():
-    print('meowing')
+    print("meowing")
+
 
 def dog():
-  print('barking')
+    print("barking")
+
 
 print(cat())
