@@ -25,6 +25,7 @@ class Customer(db.Model, SerializerMixin):
     def __repr__(self):
         return f'<Customer {self.id}, {self.customer_name}, {self.email}, {self.phone_number}, {self.password}>'
 
+
 class Ticket(db.Model, SerializerMixin):
     __tablename__ = 'tickets'
 
@@ -41,7 +42,8 @@ class Ticket(db.Model, SerializerMixin):
     
     def __repr__(self):
         return f'<Ticket {self.id}, {self.ticket_description}, {self.ticket_price}, {self.ticket_type}, {self.available}>'
-    
+
+
 class Booking(db.Model, SerializerMixin):
     __tablename__ = 'bookings'
 
@@ -55,3 +57,26 @@ class Booking(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'Booking {self.id}, {self.booking_date}, {self.ticket.ticket_description}, {self.customer.customer_name}'
+
+
+class Organizer(db.Model):
+    __tablename__ = 'organizers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    organizer_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, nullable=False)
+    phone_number = db.Column(db.Integer, nullable=False)
+    password = db.Column(db.String(60))
+
+    def __repr__(self):
+        return f'<Organizer {self.id}, {self.organizer_name}, {self.email}, {self.phone_number}, {self.password}>'
+
+
+class Venue(db.Model):
+    __tablename__ = "venues"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    address = db.Column(db.String)
+    capacity = db.Column(db.Integer)
+    def __repr__(self):
+        return f'<Venue {self.id},{self.name},{self.address},{self.capacity}>'
