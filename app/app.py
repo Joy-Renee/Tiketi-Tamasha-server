@@ -3,7 +3,7 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from datetime import datetime
-from models import db, Customer, Ticket, Booking
+from models import db, Customer, Ticket, Booking, Event
 
 app = Flask(__name__)
 
@@ -118,6 +118,73 @@ def bookings():
         db.session.add(new_booking)
         db.session.commit()
         return jsonify({"Message": "Booking done successfuly"})
+    
+@app.route('/events', methods=['GET', 'POST'])
+def events():
+    if request.method == 'GET':
+        events = []
+        for event in Event.query.all():
+            event_dict = event.to_dict()
+            events.append(event_dict)
+        if len(events) == 0:
+                return jsonify({"Message": "There are no events yet"}), 404
+        else:
+             return make_response(
+                jsonify(events), 200
+             )
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_event = Event(
+            event_name = data.get("event_name"),
+            event_date = data.get("event_date"),
+            description= data.get("description"),
+            event_time = data.get("event_time"),
+            organizer_id = data.get("organizer_id"),
+            venue_id = data.get("venue_id")
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({"Message": "Event created successfuly"})
+    
+@app.route('/event/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def get_event(id):
+
+    if request.method == 'GET':
+        events = Event.query.filter(id==id).first()
+        if events is None:
+            return jsonify({"Message": "Event not found"}), 404
+        event= events.to_dict()
+        return jsonify(event), 200
+    
+
+    elif request.method == 'DELETE':
+        event = Event.query.filter(Event.id == id).first()
+        if event is None:
+            return jsonify({"Message": "Event not found"}), 404
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({"Message": "Event deleted successfully"}), 200
+    
+    elif request.method == 'PUT':
+        event = Event.query.filter_by(id=id).first()
+        if event is None:
+            return jsonify({"Message": "Event not found"}), 404
+        data = request.get_json()
+        event.event_name = data.get('event_name', event.event_name)
+        event.description = data.get('description', event.description)
+        event.event_date = data.get('event_date', event.event_date)
+        event.event_time = data.get('event_time', event.event_time)
+        event.organizer_id = data.get('organizer_id', event.organizer_id)
+        event.venue_id = data.get('venue_id', event.venue_id)
+        db.session.commit()
+        return jsonify(event.to_dict()) 
+
+    
+
+    
+    
+
+            
 
 
 if __name__ == "__main__":
