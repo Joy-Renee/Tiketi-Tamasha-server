@@ -24,7 +24,7 @@ def customers():
     if request.method == "GET":
         customers = []
         for customer in Customer.query.all():
-            customer_dict = customer.to_dict(rules=("-bookings",))
+            customer_dict = customer.to_dict(rules=("-bookings", "-orders",))
             customers.append(customer_dict)
         if len(customers) == 0:
             return jsonify({"Message": "There are no Customers"}), 404
@@ -54,7 +54,7 @@ def get_customer(id):
         if customer is None:
             return jsonify({"message": "Customer not found"}), 404
 
-        one_customer = customer.to_dict(rules=("-bookings",))
+        one_customer = customer.to_dict(rules=("-bookings","-orders",))
         return jsonify(one_customer), 200
 
     elif request.method == "PUT":
@@ -95,7 +95,7 @@ def bookings():
     if request.method == "GET":
         bookings = []
         for book in Booking.query.all():
-            book_dict = book.to_dict(rules=("-ticket", "-customer"))
+            book_dict = book.to_dict(rules=("-ticket", "-customer",))
             bookings.append(book_dict)
         if len(bookings) == 0:
             return jsonify({"Message": "There are no bookings yet"}), 404
@@ -120,7 +120,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict()
+            event_dict = event.to_dict("-organizer","-venue",)
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -148,7 +148,7 @@ def get_event(id):
         events = Event.query.filter(id == id).first()
         if events is None:
             return jsonify({"Message": "Event not found"}), 404
-        event = events.to_dict()
+        event = events.to_dict("-organizer","-venue",)
         return jsonify(event), 200
 
     elif request.method == "DELETE":
@@ -171,7 +171,7 @@ def get_event(id):
         event.organizer_id = data.get("organizer_id", event.organizer_id)
         event.venue_id = data.get("venue_id", event.venue_id)
         db.session.commit()
-        return jsonify(event.to_dict())
+        return jsonify(event.to_dict("-organizer","-venue",))
 
 
 @app.route("/venues", methods=["GET", "POST"])
@@ -179,7 +179,7 @@ def venues():
     if request.method == "GET":
         venues = []
         for venue in Venue.query.all():
-            venue_dict = venue.to_dict()
+            venue_dict = venue.to_dict("-events",)
             venues.append(venue_dict)
             response = make_response(venues, 200)
             return response
@@ -191,7 +191,7 @@ def venues():
         )
         db.session.add(new_venue)
         db.session.commit()
-        venue_dict = new_venue.to_dict()
+        venue_dict = new_venue.to_dict("-events",)
         response = make_response(venue_dict, 201)
         return response
 
@@ -216,7 +216,7 @@ def venue_by_id(id):
             setattr(venue, attr, request.form.get(attr))
         db.session.add(venue)
         db.session.commit()
-        venue_dict = venue.to_dict()
+        venue_dict = venue.to_dict("-events",)
         response = make_response(venue_dict, 200)
         return response
 
@@ -226,7 +226,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict()
+            ticket_dict = ticket.to_dict("-bookings",)
             tickets.append(ticket_dict)
             response = make_response(tickets, 200)
             return response
@@ -238,7 +238,7 @@ def tickets():
         )
         db.session.add(new_ticket)
         db.session.commit()
-        ticket_dict = new_ticket.to_dict()
+        ticket_dict = new_ticket.to_dict("-bookings",)
         response = make_response(ticket_dict, 201)
         return response
 
@@ -250,7 +250,7 @@ def ticket_by_id(id):
         setattr(ticket, attr, request.form.get(attr))
     db.session.add(ticket)
     db.session.commit()
-    ticket_dict = ticket.to_dict()
+    ticket_dict = ticket.to_dict("-bookings",)
     response = make_response(ticket_dict, 200)
     return response
 
@@ -259,7 +259,7 @@ def orders():
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
-            order_dict = order.to_dict()
+            order_dict = order.to_dict("-payment", "-customer",)
             orders.append(order_dict)
             response = make_response(orders, 200)
             return response
@@ -271,7 +271,7 @@ def orders():
         )
         db.session.add(new_order)
         db.session.commit()
-        order_dict = new_order.to_dict()
+        order_dict = new_order.to_dict("-payment", "-customer",)
         response = make_response(order_dict, 201)
         return response
 
@@ -281,7 +281,7 @@ def order_by_id(id):
         order = Order.query.filter(Order.id == id).first()
         if order is None:
             return jsonify({"Message": "Order not found"}), 404
-        order_dict = order.to_dict()
+        order_dict = order.to_dict("-payment", "-customer",)
         return jsonify(order_dict), 200
 
     elif request.method == "DELETE":
@@ -297,7 +297,7 @@ def order_by_id(id):
             setattr(order, attr, request.form.get(attr))
         db.session.add(order)
         db.session.commit()
-        order_dict = order.to_dict()
+        order_dict = order.to_dict("-payment", "-customer",)
         response = make_response(order_dict, 200)
         return response
 
@@ -307,7 +307,7 @@ def payments():
     if request.method == "GET":
         payments = []
         for payment in Payment.query.all():
-            payment_dict = payment.to_dict()
+            payment_dict = payment.to_dict("-orders",)
             payments.append(payment_dict)
             response = make_response(payments, 200)
             return response
@@ -319,10 +319,77 @@ def payments():
         )
         db.session.add(new_payment)
         db.session.commit()
-        payment_dict = new_payment.to_dict()
+        payment_dict = new_payment.to_dict("-orders",)
         response = make_response(payment_dict, 201)
         return response
 
+
+@app.route("/organizers", methods = ("GET", "POST"))
+def organizers():
+    if request.method == "GET":
+        organizers = []
+        for organizer in Organizer.query.all():
+            organizer_dict = organizer.to_dict(rules=("-events",))
+            organizers.append(organizer_dict)
+        if len(organizers) == 0:
+            return jsonify({"Message": "There are no Organizers here"}), 404
+        else:
+            return make_response(jsonify(organizers), 200)
+
+    elif request.method == "POST":
+        data = request.get_json()
+
+        new_organizer = Organizer(
+            organizer_name=data.get("organizer_name"),
+            email=data.get("email"),
+            phone_number=data.get("phone_number"),
+            password=data.get("password"),
+        )
+        db.session.add(new_organizer)
+        db.session.commit()
+        return jsonify({"Message": "Organizer was added successfuly"})
+
+@app.route("/organizer/<int:id>", methods=["GET", "PUT", "DELETE"])
+def get_organizer(id):
+    print(id)
+
+    if request.method == "GET":
+        organizer = Organizer.query.filter_by(id=id).first()
+        if organizer is None:
+            return jsonify({"message": "Organizer not found"}), 404
+
+        one_organizer = organizer.to_dict(rules=("-events",))
+        return jsonify(one_organizer), 200
+
+    elif request.method == "PUT":
+        data = request.get_json()
+        organizer = Organizer.query.get(id)
+
+        if organizer is None:
+            return jsonify({"message": "Organizer not found"}), 404
+
+        if "organizer_name" in data:
+            organizer.organizer_name = data["organizer_name"]
+        if "email" in data:
+            organizer.email = data["email"]
+        if "phone_number" in data:
+            organizer.phone_number = data["phone_number"]
+        if "password" in data:
+            organizer.password = data["password"]
+
+        db.session.commit()
+
+        return jsonify({"message": "Organizer details updated successfully"}), 200
+
+    elif request.method == "DELETE":
+        organizer = Organizer.query.filter_by(id=id).first()
+        if organizer is None:
+            return jsonify({"message": "Organizer not found"}), 404
+
+        db.session.delete(organizer)
+        db.session.commit()
+
+        return jsonify({"message": "Customer deleted successfully"}), 200
 
 
 if __name__ == "__main__":
