@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Event, Venue
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 
 app = Flask(__name__)
 
@@ -253,6 +253,76 @@ def ticket_by_id(id):
     ticket_dict = ticket.to_dict()
     response = make_response(ticket_dict, 200)
     return response
+
+@app.route("orders", methods=["GET", "POST"])
+def orders():
+    if request.method == "GET":
+        orders = []
+        for order in Order.query.all():
+            order_dict = order.to_dict()
+            orders.append(order_dict)
+            response = make_response(orders, 200)
+            return response
+    elif request.method == "POST":
+        new_order = Order(
+            customer_id=request.form.get("customer_id"),
+            order_date=request.form.get("order_date"),
+            total_price=request.form.get("total_price"),
+        )
+        db.session.add(new_order)
+        db.session.commit()
+        order_dict = new_order.to_dict()
+        response = make_response(order_dict, 201)
+        return response
+
+@app.route("orders/<int:id>", methods=["GET", "PATCH", "DELETE"],)
+def order_by_id(id):
+    if request.method == "GET":
+        order = Order.query.filter(Order.id == id).first()
+        if order is None:
+            return jsonify({"Message": "Order not found"}), 404
+        order_dict = order.to_dict()
+        return jsonify(order_dict), 200
+
+    elif request.method == "DELETE":
+        order = Order.query.filter(Order.id == id).first()
+        if order is None:
+            return jsonify({"Message": "Order not found"}), 404
+        db.session.delete(order)
+        db.session.commit()
+        return jsonify({"Message": "Order deleted successfully"}), 200
+    elif request.method == "PATCH":
+        order = Order.query.filter(Order.id == id).first()
+        for attr in request.form:
+            setattr(order, attr, request.form.get(attr))
+        db.session.add(order)
+        db.session.commit()
+        order_dict = order.to_dict()
+        response = make_response(order_dict, 200)
+        return response
+
+
+@app.route("/payments", methods=["GET", "POST"])
+def payments():
+    if request.method == "GET":
+        payments = []
+        for payment in Payment.query.all():
+            payment_dict = payment.to_dict()
+            payments.append(payment_dict)
+            response = make_response(payments, 200)
+            return response
+    elif request.method == "POST":
+        new_payment = Payment(
+            payment_date=request.form.get("payment_date"),
+            amount=request.form.get("amount"),
+            order_id=request.form.get("order_id"),
+        )
+        db.session.add(new_payment)
+        db.session.commit()
+        payment_dict = new_payment.to_dict()
+        response = make_response(payment_dict, 201)
+        return response
+
 
 
 if __name__ == "__main__":
