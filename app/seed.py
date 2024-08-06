@@ -95,7 +95,7 @@ def seed_data():
 
         orders = [
             Order(customer=customers[0], order_date=datetime.datetime.now(), total_price= 200.0),
-            Order(customer=customers[1], order_date=datetime.datetime.no(), total_price= 150.0),
+            Order(customer=customers[1], order_date=datetime.datetime.now(), total_price= 150.0),
             Order(customer=customers[2], order_date=datetime.datetime.now(), total_price= 300.0)
         ] 
         db.session.add_all(orders)
