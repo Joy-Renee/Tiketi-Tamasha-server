@@ -3,10 +3,13 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from datetime import datetime
 from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.json.compact = False
 
@@ -120,7 +123,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict("-organizer","-venue",)
+            event_dict = event.to_dict()
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -148,7 +151,7 @@ def get_event(id):
         events = Event.query.filter(id == id).first()
         if events is None:
             return jsonify({"Message": "Event not found"}), 404
-        event = events.to_dict("-organizer","-venue",)
+        event = events.to_dict()
         return jsonify(event), 200
 
     elif request.method == "DELETE":
@@ -171,7 +174,7 @@ def get_event(id):
         event.organizer_id = data.get("organizer_id", event.organizer_id)
         event.venue_id = data.get("venue_id", event.venue_id)
         db.session.commit()
-        return jsonify(event.to_dict("-organizer","-venue",))
+        return jsonify(event.to_dict())
 
 
 @app.route("/venues", methods=["GET", "POST"])
@@ -179,7 +182,7 @@ def venues():
     if request.method == "GET":
         venues = []
         for venue in Venue.query.all():
-            venue_dict = venue.to_dict("-events",)
+            venue_dict = venue.to_dict()
             venues.append(venue_dict)
             response = make_response(venues, 200)
             return response
@@ -191,7 +194,7 @@ def venues():
         )
         db.session.add(new_venue)
         db.session.commit()
-        venue_dict = new_venue.to_dict("-events",)
+        venue_dict = new_venue.to_dict()
         response = make_response(venue_dict, 201)
         return response
 
@@ -216,7 +219,7 @@ def venue_by_id(id):
             setattr(venue, attr, request.form.get(attr))
         db.session.add(venue)
         db.session.commit()
-        venue_dict = venue.to_dict("-events",)
+        venue_dict = venue.to_dict()
         response = make_response(venue_dict, 200)
         return response
 
@@ -226,7 +229,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict("-bookings",)
+            ticket_dict = ticket.to_dict()
             tickets.append(ticket_dict)
             response = make_response(tickets, 200)
             return response
@@ -238,7 +241,7 @@ def tickets():
         )
         db.session.add(new_ticket)
         db.session.commit()
-        ticket_dict = new_ticket.to_dict("-bookings",)
+        ticket_dict = new_ticket.to_dict()
         response = make_response(ticket_dict, 201)
         return response
 
@@ -250,7 +253,7 @@ def ticket_by_id(id):
         setattr(ticket, attr, request.form.get(attr))
     db.session.add(ticket)
     db.session.commit()
-    ticket_dict = ticket.to_dict("-bookings",)
+    ticket_dict = ticket.to_dict()
     response = make_response(ticket_dict, 200)
     return response
 
@@ -259,7 +262,7 @@ def orders():
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
-            order_dict = order.to_dict("-payment", "-customer",)
+            order_dict = order.to_dict()
             orders.append(order_dict)
             response = make_response(orders, 200)
             return response
@@ -271,7 +274,7 @@ def orders():
         )
         db.session.add(new_order)
         db.session.commit()
-        order_dict = new_order.to_dict("-payment", "-customer",)
+        order_dict = new_order.to_dict()
         response = make_response(order_dict, 201)
         return response
 
@@ -281,7 +284,7 @@ def order_by_id(id):
         order = Order.query.filter(Order.id == id).first()
         if order is None:
             return jsonify({"Message": "Order not found"}), 404
-        order_dict = order.to_dict("-payment", "-customer",)
+        order_dict = order.to_dict()
         return jsonify(order_dict), 200
 
     elif request.method == "DELETE":
@@ -297,7 +300,7 @@ def order_by_id(id):
             setattr(order, attr, request.form.get(attr))
         db.session.add(order)
         db.session.commit()
-        order_dict = order.to_dict("-payment", "-customer",)
+        order_dict = order.to_dict()
         response = make_response(order_dict, 200)
         return response
 
@@ -307,7 +310,7 @@ def payments():
     if request.method == "GET":
         payments = []
         for payment in Payment.query.all():
-            payment_dict = payment.to_dict("-orders",)
+            payment_dict = payment.to_dict()
             payments.append(payment_dict)
             response = make_response(payments, 200)
             return response
@@ -319,7 +322,7 @@ def payments():
         )
         db.session.add(new_payment)
         db.session.commit()
-        payment_dict = new_payment.to_dict("-orders",)
+        payment_dict = new_payment.to_dict()
         response = make_response(payment_dict, 201)
         return response
 

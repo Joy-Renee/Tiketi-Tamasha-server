@@ -16,7 +16,7 @@ class Customer(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.Integer, nullable=False)
+    phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String)
 
     bookings = db.relationship('Booking', back_populates='customer', cascade='all, delete-orphan')
@@ -68,7 +68,7 @@ class Organizer(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     organizer_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.Integer, nullable=False)
+    phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String(60))
     
     events = db.relationship('Event', back_populates='organizer', cascade='all, delete-orphan')

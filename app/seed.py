@@ -1,5 +1,5 @@
 from app import app
-from models import db, Venue, Organizer, Event, Customer, Ticket, Booking
+from models import db, Venue, Organizer, Event, Customer, Ticket, Booking, Payment, Order
 from sqlalchemy.exc import IntegrityError
 import datetime
 
@@ -10,8 +10,11 @@ def seed_data():
         db.session.query(Organizer).delete()
         db.session.query(Event).delete()
         db.session.query(Customer).delete()
+        db.session.query(Payment).delete()
+        db.session.query(Order).delete()
         db.session.query(Ticket).delete()
         db.session.query(Booking).delete()
+        db.session.commit()
 
         # Add Venues
         venues = [
@@ -71,7 +74,7 @@ def seed_data():
         customers = [
             Customer(customer_name="Kelvin", email="kelvin@example.com", phone_number=1234567890, password="password1"),
             Customer(customer_name="Mary", email="mary@example.com", phone_number=2345678901, password="password2"),
-            Customer(customer_name="Maureen", email="maureen@example.co", phone_number=3456789012, password="password3")
+            Customer(customer_name="Maureen", email="maureen@example.com", phone_number=3456789012, password="password3")
         ]
         db.session.add_all(customers)
         
@@ -82,12 +85,28 @@ def seed_data():
             Ticket(ticket_description="Early Bird", ticket_price=30.0, ticket_type="EB", available=200)
         ]
         db.session.add_all(tickets)
+
+        # Add Orders
+        orders = [
+            Order(customer=customers[0], order_date=datetime.datetime.now(), total_price=200.0),
+            Order(customer=customers[1], order_date=datetime.datetime.now(), total_price=150.0),
+            Order(customer=customers[2], order_date=datetime.datetime.now(), total_price=300.0)
+        ]
+        db.session.add_all(orders)
+
+        # Add Payments
+        payments = [
+            Payment(amount=50.0, payment_date=datetime.datetime.now(), orders=orders[0]),
+            Payment(amount=100.0, payment_date=datetime.datetime.now(), orders=orders[1]),
+            Payment(amount=30.0, payment_date=datetime.datetime.now(), orders=orders[2])
+        ]
+        db.session.add_all(payments)
         
         # Add Bookings
         bookings = [
-            Booking(booking_date=datetime.datetime.now(),ticket=tickets[0], customer=customers[0]),
-            Booking(booking_date=datetime.datetime.now(),ticket=tickets[1], customer=customers[1]),
-            Booking(booking_date=datetime.datetime.now(),ticket=tickets[2], customer=customers[2])
+            Booking(booking_date=datetime.datetime.now(), ticket=tickets[0], customer=customers[0]),
+            Booking(booking_date=datetime.datetime.now(), ticket=tickets[1], customer=customers[1]),
+            Booking(booking_date=datetime.datetime.now(), ticket=tickets[2], customer=customers[2])
         ]
         db.session.add_all(bookings)
 
