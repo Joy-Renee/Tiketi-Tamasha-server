@@ -196,7 +196,7 @@ def venues():
         return response
 
 
-@app.route("venues/<int:id>", method=["PATCH", "DELETE"])
+@app.route("/venues/<int:id>", methods=["PATCH", "DELETE"])
 def venue_by_id(id):
     if request.method == "DELETE":
         venue = Venue.query.filter(Venue.id == id).first()
@@ -243,7 +243,7 @@ def tickets():
         return response
 
 
-@app.route("tickets/<int:id>", method=["PATCH"])
+@app.route("/tickets/<int:id>", methods=["PATCH"])
 def ticket_by_id(id):
     ticket = Ticket.query.filter(Ticket.id == id).first()
     for attr in request.form:
@@ -254,7 +254,7 @@ def ticket_by_id(id):
     response = make_response(ticket_dict, 200)
     return response
 
-@app.route("orders", methods=["GET", "POST"])
+@app.route("/orders", methods=["GET", "POST"])
 def orders():
     if request.method == "GET":
         orders = []
@@ -275,7 +275,7 @@ def orders():
         response = make_response(order_dict, 201)
         return response
 
-@app.route("orders/<int:id>", methods=["GET", "PATCH", "DELETE"],)
+@app.route("/orders/<int:id>", methods=["GET", "PATCH", "DELETE"],)
 def order_by_id(id):
     if request.method == "GET":
         order = Order.query.filter(Order.id == id).first()
