@@ -1,5 +1,5 @@
 from app import app
-from models import db, Venue, Organizer, Event, Customer, Ticket, Booking, Payment
+from models import db, Venue, Organizer, Event, Customer, Ticket, Booking, Payment, Order
 from sqlalchemy.exc import IntegrityError
 import datetime
 
@@ -11,6 +11,7 @@ def seed_data():
         db.session.query(Event).delete()
         db.session.query(Customer).delete()
         db.session.query(Payment).delete()
+        db.session.quer(Order).delete()
         db.session.query(Ticket).delete()
         db.session.query(Booking).delete()
 
@@ -89,7 +90,15 @@ def seed_data():
             Payment(amount=100.0, payment_date=datetime.datetime.now()),
             Payment(amount=30.0, payment_date=datetime.datetime.now())
         ]
-        db.session.add_all(payments)      
+        db.session.add_all(payments) 
+
+
+        orders = [
+            Order(customer=customers[0], order_date=datetime.datetime.now(), total_price= 200.0),
+            Order(customer=customers[1], order_date=datetime.datetime.no(), total_price= 150.0),
+            Order(customer=customers[2], order_date=datetime.datetime.now(), total_price= 300.0)
+        ] 
+        db.session.add_all(orders)
 
         
 
