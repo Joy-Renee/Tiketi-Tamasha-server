@@ -84,13 +84,13 @@ def seed_data():
             Ticket(ticket_description="Early Bird", ticket_price=30.0, ticket_type="EB", available=200)
         ]
         db.session.add_all(tickets)
-
+        
         payments = [
-            Payment(amount=50.0, payment_date=datetime.datetime.now()),
-            Payment(amount=100.0, payment_date=datetime.datetime.now()),
-            Payment(amount=30.0, payment_date=datetime.datetime.now())
+            Payment(amount=50.0, payment_date=datetime.datetime.now(), orders=orders[0]),
+            Payment(amount=100.0, payment_date=datetime.datetime.now(), orders=orders[1]),
+            Payment(amount=30.0, payment_date=datetime.datetime.now(), orders=orders[2])
         ]
-        db.session.add_all(payments) 
+        db.session.add_all(payments)
 
 
         orders = [
