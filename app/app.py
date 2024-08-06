@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
 load_dotenv()
