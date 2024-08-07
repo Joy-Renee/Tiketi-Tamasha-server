@@ -102,6 +102,23 @@ def seed_data():
         ]
         db.session.add_all(payments)
         
+        payments = [
+            Payment(amount=50.0, payment_date=datetime.datetime.now(), orders=orders[0]),
+            Payment(amount=100.0, payment_date=datetime.datetime.now(), orders=orders[1]),
+            Payment(amount=30.0, payment_date=datetime.datetime.now(), orders=orders[2])
+        ]
+        db.session.add_all(payments)
+
+
+        orders = [
+            Order(customer=customers[0], order_date=datetime.datetime.now(), total_price= 200.0),
+            Order(customer=customers[1], order_date=datetime.datetime.now(), total_price= 150.0),
+            Order(customer=customers[2], order_date=datetime.datetime.now(), total_price= 300.0)
+        ] 
+        db.session.add_all(orders)
+
+        
+
         # Add Bookings
         bookings = [
             Booking(booking_date=datetime.datetime.now(), ticket=tickets[0], customer=customers[0]),
