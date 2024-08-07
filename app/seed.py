@@ -18,10 +18,18 @@ def seed_data():
 
         # Add Venues
         venues = [
-            Venue(name="Uhuru Gardens", address="Langata Road", capacity=2000),
-            Venue(name="Carnival Grounds", address="Mombasa", capacity=5000),
-            Venue(name="Diani Resorts", address="Diani Mombasa", capacity=1500),
-            Venue(name="KICC Grounds", address="Nairobi City Square", capacity=1000)
+            Venue(name="Uhuru Gardens", address="Langata Road", capacity=2000, image="https://lh3.googleusercontent.com/P6kpuuIYXzr5ERF1-76XjHhdvbm6e-WUcTFJt94ppSQVVtvySQ3JVV6bGj5RjT4atrYEIlQVpHeerV9OS5CBOGwa_YwWna2hznTv7A=s750"),
+            Venue(name="Carnival Grounds", address="Mombasa", capacity=5000, image="https://www.shutterstock.com/image-photo/nairobi-kenya-september-15-2013-260nw-771906451.jpg"),
+            Venue(name="Diani Resorts", address="Diani Mombasa", capacity=1500, image ="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/56/73/ed/diani-sea-resort.jpg?w=700&h=-1&s=1"),
+            Venue(name="KICC Grounds", address="Nairobi City Square", capacity=1000, image="https://ocdn.eu/images/pulscms/MWM7MDA_/0e3817b9f5dd05c254990d47eb0c685f.jpeg"),
+            Venue(name="Quiver Kilimani", address="Ngong Road prestige", capacity=1500, image="https://i.ytimg.com/vi/4meykCSeckg/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCnUmJwqhA-fuiDMCRilttlSPSaLw"),
+            Venue(name="Emara Ole Sereni", address="Nairobi next to Nairobi nattional park", capacity=500, image="https://cf.bstatic.com/xdata/images/hotel/max1024x768/484982054.jpg?k=a30ad26e24899dbd982b7dc6613ab68a0508acf6b1fcaba497b90a868d14f0ec&o=&hp=1"),
+            Venue(name="Tamasha Eldoret", address="Eldoret", capacity=2000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnXQ81ZAJ4Di8K-itdoakn-vY7RCmFweyQ5w&s"),
+            Venue(name="Jamii Executive Gardens", address="mwea", capacity=3000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOKQgbwKQ85CArXWaAd5Fb1WO01deTbwPmT2olAtwFtzr--9GVeIEv17674gMKWNyofu4&usqp=CAU"),
+            Venue(name="Ngong Racecourse", address="Ngong", capacity=1000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9BSZomf8Ks5R4ddnHEGjCpcjyYuVRKyPWYQ&s"),
+            Venue(name="Hells gate national park", address="Naivasha", capacity=5000, image="https://cdn.standardmedia.co.ke/images/sunday/wzmkpihitqrstob5d6bf41808241.jpg"),
+            Venue(name="K1 lounge", address="Westlands", capacity=500, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlAg3ONmytH1crE5DX7t2KuSooErOSCnnD6A&s"),
+            Venue(name="The Embassy", address="thika road roasters", capacity=1000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3jV1yZ_6oPYGINnBKA4hGSY7LsWTMB_RTjw&s"),
         ]
         db.session.add_all(venues)
         
@@ -29,7 +37,9 @@ def seed_data():
         organizers = [
             Organizer(organizer_name="James", email="james@example.com", phone_number=1234567890, password="password1"),
             Organizer(organizer_name="Victor", email="victor@example.com", phone_number=2345678901, password="password2"),
-            Organizer(organizer_name="Joy", email="joy@example.com", phone_number=3456789012, password="password3")
+            Organizer(organizer_name="Joy", email="joy@example.com", phone_number=3456789012, password="password3"),
+            Organizer(organizer_name="kelnie", email="kelnie@example.com", phone_number=112343444, password="password4"),
+            Organizer(organizer_name="julie", email="julie@example.com", phone_number=34535666432, password="password5")
         ]
         db.session.add_all(organizers)
         
@@ -41,7 +51,8 @@ def seed_data():
                 venue=venues[0],
                 event_date="2024-10-10",
                 event_time="18:00",
-                organizer=organizers[0]
+                organizer=organizers[0],
+                image="https://pbs.twimg.com/profile_images/1742193233956843520/zG4HrUJG_400x400.jpg"
             ),
             Event(
                 event_name="Sol Fest",
@@ -49,7 +60,8 @@ def seed_data():
                 venue=venues[1],
                 event_date="2024-11-12",
                 event_time="19:00",
-                organizer=organizers[1]
+                organizer=organizers[1],
+                image="https://citizentv.obs.af-south-1.myhuaweicloud.com/71068/conversions/Sol-Fest-og_image.webp"
             ),
             Event(
                 event_name="Summer Tides",
@@ -57,7 +69,8 @@ def seed_data():
                 venue=venues[2],
                 event_date="2023-08-24",
                 event_time="20:00",
-                organizer=organizers[2]
+                organizer=organizers[2],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeGMSLbcHEJFGuWvxiQrdHOQ4hLopBKSwcnw&s"
             ),
             Event(
                 event_name="Oktober Fest",
@@ -65,7 +78,62 @@ def seed_data():
                 venue=venues[2],
                 event_date="2024-07-12",
                 event_time="17:00",
-                organizer=organizers[2]
+                organizer=organizers[2],
+                image="https://nnmedia.nation.africa/uploads/2022/11/DNOktoberfest3010bta.jpg"
+            ),
+            Event(
+                event_name="Raha Rava",
+                description="Join us for the best party of the year at raha rava with the bahatis and one on one with ruger",
+                venue=venues[11],
+                event_date="2024-08-12",
+                event_time="20:00",
+                organizer=organizers[4],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzShbFMvCzqPRDLZ69MOkFgBFvkQB-gGTf_g&s"
+            ),
+            Event(
+                event_name="Color Festival",
+                description="Experience the vibrant fusion of music, art, and pure joy at Nairobi Colour Festival on April 20th! Join us for an unforgettable celebration! ",
+                venue=venues[1],
+                event_date="2024-04-20",
+                event_time="18:00",
+                organizer=organizers[3],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJ2tzn_VsnbOqvhpWQgf9UVrtEJFEmeFVjdQ&s"
+            ),
+            Event(
+                event_name="WRC VASHA",
+                description="Held on the untamed terrains of Africas breathtaking landscapes where the weather can change in a matter of minutes. Mud, rocks fesh-fesh sand and challenging water crossings make safari rally kenya the ultimate test of enduarance",
+                venue=venues[9],
+                event_date="2024-03-12",
+                event_time="08:00",
+                organizer=organizers[3],
+                image="https://www.president.go.ke/wp-content/uploads/1-195-scaled.jpeg"
+            ),
+            Event(
+                event_name="juice party",
+                description="The Eldoret Jyuuce Party is happening on 15 June! Grab your early bird tickets ASAP! All details are on the poster",
+                venue=venues[6],
+                event_date="2024-06-15",
+                event_time="19:00",
+                organizer=organizers[2],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVVQSotjssyWmwGMmitFoSD6CLLPYwa0INEg&s"
+            ),
+            Event(
+                event_name="Afrika moja",
+                description="Concert is happening on 30th April @ KICC Grounds from 6PM, featuring Harmonize “Konde Boy” from Tanzania & other leading Kenyan artists. Eric Omondi & Iddi Achieng will be the MCs",
+                venue=venues[3],
+                event_date="2024-04-30",
+                event_time="21:00",
+                organizer=organizers[3],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6OMO8pAIW-wMBaI9wsc0mEISutG92TydDGg&s"
+            ),
+            Event(
+                event_name="New Years eve party",
+                description="NEW YEAR'S EVE ALERT!🔥The climax party of the year will be @k1klubhouse with Kay Wachira Wanja & Gibbz Tha Daqchild Countdown to 2025 with fireworks!!💥",
+                venue=venues[10],
+                event_date="2024-12-31",
+                event_time="22:00",
+                organizer=organizers[4],
+                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-ormLjBoELRcfY9_ltWxAYDlJonvd_90YJw&s"
             )
         ]
         db.session.add_all(events)

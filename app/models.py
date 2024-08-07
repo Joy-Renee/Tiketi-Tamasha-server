@@ -86,6 +86,7 @@ class Venue(db.Model, SerializerMixin):
     name = db.Column(db.String)
     address = db.Column(db.String)
     capacity = db.Column(db.Integer)
+    image= db.Column(db.String)
     
     events = db.relationship('Event', back_populates='venue', cascade='all, delete-orphan')
 
@@ -105,6 +106,7 @@ class Event(db.Model, SerializerMixin):
     event_time = db.Column(db.String)
     organizer_id = db.Column(db.Integer, db.ForeignKey('organizers.id'))
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
+    image= db.Column(db.String)
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
