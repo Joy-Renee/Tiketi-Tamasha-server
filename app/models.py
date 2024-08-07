@@ -16,7 +16,7 @@ class Customer(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.Integer, nullable=False)
+    phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String)
 
     bookings = db.relationship('Booking', back_populates='customer', cascade='all, delete-orphan')
@@ -68,7 +68,7 @@ class Organizer(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     organizer_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    phone_number = db.Column(db.Integer, nullable=False)
+    phone_number = db.Column(db.String, nullable=False)
     password = db.Column(db.String(60))
     
     events = db.relationship('Event', back_populates='organizer', cascade='all, delete-orphan')
@@ -86,6 +86,7 @@ class Venue(db.Model, SerializerMixin):
     name = db.Column(db.String)
     address = db.Column(db.String)
     capacity = db.Column(db.Integer)
+    image= db.Column(db.String)
     
     events = db.relationship('Event', back_populates='venue', cascade='all, delete-orphan')
 
@@ -105,6 +106,7 @@ class Event(db.Model, SerializerMixin):
     event_time = db.Column(db.String)
     organizer_id = db.Column(db.Integer, db.ForeignKey('organizers.id'))
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
+    image= db.Column(db.String)
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
