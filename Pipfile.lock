@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bbc0222ce29796bf0cf9bfdee5ec7681c7fd657508d9a86828a97d3c55a10d8c"
+            "sha256": "08b94c955e8d4da399352fa39affd63f8e4e30935e6b5cd458d18c24432d657f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,13 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==1.13.2"
+        },
+        "aniso8601": {
+            "hashes": [
+                "sha256:1d2b7ef82963909e93c4f24ce48d4de9e66009a21bf1c1e1c85bdd0812fe412f",
+                "sha256:72e3117667eedf66951bb2d93f4296a56b94b078a8a95905a052611fb3f1b973"
+            ],
+            "version": "==9.0.1"
         },
         "blinker": {
             "hashes": [
@@ -74,6 +81,14 @@
             "index": "pypi",
             "markers": "python_version >= '3.6'",
             "version": "==4.0.7"
+        },
+        "flask-restful": {
+            "hashes": [
+                "sha256:1cf93c535172f112e080b0d4503a8d15f93a48c88bdd36dd87269bdaf405051b",
+                "sha256:fe4af2ef0027df8f9b4f797aba20c5566801b6ade995ac63b588abf1a59cec37"
+            ],
+            "index": "pypi",
+            "version": "==0.3.10"
         },
         "flask-sqlalchemy": {
             "hashes": [
@@ -330,6 +345,7 @@
                 "sha256:f7fc5a5acafb7d6ccca13bfa8c90f8c51f13d8fb87d95656d3950f0158d3ce53",
                 "sha256:f9b5571d33660d5009a8b3c25dc1db560206e2d2f89d3df1cb32d72c0d117d52"
             ],
+            "index": "pypi",
             "markers": "python_version >= '3.7'",
             "version": "==2.9.9"
         },
@@ -340,6 +356,15 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
+        },
+        "python-dotenv": {
+            "hashes": [
+                "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca",
+                "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==1.0.1"
         },
         "pytz": {
             "hashes": [
