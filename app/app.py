@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -204,7 +204,7 @@ def venues():
     if request.method == "GET":
         venues = []
         for venue in Venue.query.all():
-            venue_dict = venue.to_dict()
+            venue_dict = venue.to_dict(rules=())
             venues.append(venue_dict)
             response = make_response(venues, 200)
             return response
