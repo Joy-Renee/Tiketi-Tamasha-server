@@ -15,6 +15,7 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 flask-restful = "*"
 python-dotenv = "*"
+flask-swagger-ui = "*"
 
 [dev-packages]
 
