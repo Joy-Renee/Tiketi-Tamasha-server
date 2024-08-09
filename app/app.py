@@ -150,23 +150,21 @@ def events():
 def get_event(id):
 
     if request.method == 'GET':
-        events = Event.query.filter(id==id).first()
-        if events is None:
+        event = Event.query.filter_by(id=id).first()  # Corrected filter condition
+        if event is None:
             return jsonify({"Message": "Event not found"}), 404
-        event= events.to_dict()
-        return jsonify(event), 200
-    
+        return jsonify(event.to_dict()), 200
 
     elif request.method == 'DELETE':
-        event = Event.query.filter(Event.id == id).first()
+        event = Event.query.filter_by(id=id).first()  # Corrected filter condition
         if event is None:
             return jsonify({"Message": "Event not found"}), 404
         db.session.delete(event)
         db.session.commit()
         return jsonify({"Message": "Event deleted successfully"}), 200
-    
+
     elif request.method == 'PUT':
-        event = Event.query.filter_by(id=id).first()
+        event = Event.query.filter_by(id=id).first()  # Corrected filter condition
         if event is None:
             return jsonify({"Message": "Event not found"}), 404
         data = request.get_json()
@@ -177,7 +175,8 @@ def get_event(id):
         event.organizer_id = data.get('organizer_id', event.organizer_id)
         event.venue_id = data.get('venue_id', event.venue_id)
         db.session.commit()
-        return jsonify(event.to_dict()) 
+        return jsonify(event.to_dict()), 200  # Added status code
+
 
     
 
