@@ -1,22 +1,26 @@
-from flask import Flask, request, make_response, jsonify
-from flask_cors import CORS
+from flask import Flask, request, make_response, jsonify, session
+from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
+from flask_bcrypt import Bcrypt
 load_dotenv()
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
+app.config['SECRET_KEY'] = 'cairocoders-ednalan'
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URI')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.json.compact = False
 
 migrate = Migrate(app, db)
 
 db.init_app(app)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 # with app.app_context():
 #     db.create_all()
@@ -123,7 +127,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict()
+            event_dict = event.to_dict(rules=('-organizer', '-venue'))
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -151,7 +155,7 @@ def get_event(id):
         events = Event.query.filter(id == id).first()
         if events is None:
             return jsonify({"Message": "Event not found"}), 404
-        event = events.to_dict()
+        event = events.to_dict(rules=('-organizer', '-venue',))
         return jsonify(event), 200
 
     elif request.method == "DELETE":
@@ -182,10 +186,10 @@ def venues():
     if request.method == "GET":
         venues = []
         for venue in Venue.query.all():
-            venue_dict = venue.to_dict()
+            venue_dict = venue.to_dict(rules=('-events',))
             venues.append(venue_dict)
-            response = make_response(venues, 200)
-            return response
+        response = make_response(venues, 200)
+        return response
     elif request.method == "POST":
         new_venue = Venue(
             name=request.form.get("name"),
@@ -229,10 +233,10 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict()
+            ticket_dict = ticket.to_dict(rules=("-bookings", ))
             tickets.append(ticket_dict)
-            response = make_response(tickets, 200)
-            return response
+        response = make_response(tickets, 200)
+        return response
     elif request.method == "POST":
         new_ticket = Ticket(
             price=request.form.get("price"),
@@ -262,10 +266,10 @@ def orders():
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
-            order_dict = order.to_dict()
+            order_dict = order.to_dict(rules=('-customer', '-payment',))
             orders.append(order_dict)
-            response = make_response(orders, 200)
-            return response
+        response = make_response(orders, 200)
+        return response
     elif request.method == "POST":
         new_order = Order(
             customer_id=request.form.get("customer_id"),
@@ -394,6 +398,50 @@ def get_organizer(id):
 
         return jsonify({"message": "Customer deleted successfully"}), 200
 
+@app.route("/signup", methods=["POST"])
+def signup():
+    customer_name = request.json["customer_name"]
+    email = request.json["email"]
+    phone_number = request.json["phone_number"]
+    password = request.json["password"]
+
+    user_exists = Customer.query.filter_by(email=email).first() is not None
+
+    if user_exists:
+        return jsonify({"error": "Email already exists"}), 409
+    
+    hashed_password = bcrypt.generate_password_hash(password)
+    new_user = Customer(customer_name=customer_name, email=email, phone_number=phone_number, password=hashed_password)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    session["user_id"] = new_user.id
+
+    return jsonify({
+        "id": new_user.id,
+        "email": new_user.email
+    })
+
+@app.route("/login", methods=["POST"])
+def login_user():
+    email = request.json["email"]
+    password = request.json["password"]
+
+    user = Customer.query.filter_by(email=email).first()
+
+    if user is None:
+        return jsonify({"error":"Unauthorized Access"}), 401
+    
+    if not bcrypt.check_password_hash(user.password, password):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    session["user_id"] = user.id
+
+    return jsonify({
+        "id": user.id,
+        "email": user.email
+    })
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
