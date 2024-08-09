@@ -1,9 +1,9 @@
 {
     "openapi": "3.0.0",
     "info": {
-      "title": "Event Management API",
+      "title": "Tiketi Tamasha API",
       "version": "1.0.0",
-      "description": "API for managing customers, bookings, events, venues, tickets, orders, payments, and organizers."
+      "description": "API for managing ticket and venue booking for events."
     },
     "servers": [
       {
