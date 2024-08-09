@@ -69,7 +69,7 @@ def seed_data():
                 event_date="2023-08-24",
                 event_time="20:00",
                 organizer=organizers[2],
-                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeGMSLbcHEJFGuWvxiQrdHOQ4hLopBKSwcnw&s"
+                image="https://tutembee.com/documents/photo_6003616633832193974_y.jpg_1718174363.jpg"
             ),
             Event(
                 event_name="Oktober Fest",
@@ -108,7 +108,7 @@ def seed_data():
                 image="https://www.president.go.ke/wp-content/uploads/1-195-scaled.jpeg"
             ),
             Event(
-                event_name="juice party",
+                event_name="Juice party",
                 description="The Eldoret Jyuuce Party is happening on 15 June! Grab your early bird tickets ASAP! All details are on the poster",
                 venue=venues[6],
                 event_date="2024-06-15",
@@ -133,6 +133,23 @@ def seed_data():
                 event_time="22:00",
                 organizer=organizers[4],
                 image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-ormLjBoELRcfY9_ltWxAYDlJonvd_90YJw&s"
+            ),
+            Event(
+                event_name="Roof Top Bash",
+                description="Join us for a night of fun and games at the Roof Top Bash on 25 october at ole serei roof top",
+                venue=venues[5],
+                event_date="2024-10-25",
+                event_time="17:00",
+                organizer=organizers[3],
+                image="https://emara.ole-sereni.com/wp-content/uploads/2022/11/s5.jpg"
+            ),Event(
+                event_name="Walker town",
+                description="At Walker Town, consumers experience the best brand experience, entertainment (international artists, DJs and Acts), the best food, activities such as gaming, fashion and art, a truly in-culture space to take envious selfies and most importantly sample and experience the best Johnnie Walker drink creations by world-class mixologists, Whisky food pairings and much more",
+                venue=venues[0],
+                event_date="2024-03-18",
+                event_time="18:00",
+                organizer=organizers[1],
+                image="https://i.ytimg.com/vi/AzCbrMo5598/maxresdefault.jpg"
             )
         ]
         db.session.add_all(events)
@@ -147,9 +164,54 @@ def seed_data():
         
         # Add Tickets
         tickets = [
-            Ticket(ticket_description="Regular", ticket_price=50.0, ticket_type="REG", available=100, ),
-            Ticket(ticket_description="VIP", ticket_price=100.0, ticket_type="VIP", available=50),
-            Ticket(ticket_description="Early Bird", ticket_price=30.0, ticket_type="EB", available=200)
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[0]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[0]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[0]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=100.0, ticket_type="EB", available=500, event=events[1]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[1]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[1]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[2]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[2]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[2]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[3]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[3]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[3]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[4]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[4]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[4]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[5]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[5]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[5]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[6]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[6]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[6]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[7]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[7]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[7]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[8]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[8]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[8]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[9]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[9]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[9]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[10]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[10]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[10]),
+
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[11]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[11]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[11]),
+
         ]
         db.session.add_all(tickets)
         

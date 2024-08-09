@@ -35,11 +35,13 @@ class Ticket(db.Model, SerializerMixin):
     ticket_price = db.Column(db.Integer)
     ticket_type = db.Column(db.String)
     available = db.Column(db.Integer)
+    
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
 
     bookings = db.relationship('Booking', back_populates='ticket', cascade='all, delete-orphan')
-    event = db.relationship('Event', back_populates='ticket', cascade= 'all, delete-orphan')
+    event = db.relationship('Event', back_populates='tickets')
 
-    serialize_rules = ("-bookings.ticket",)
+    serialize_rules = ("-bookings.ticket", "-event.tickets",)
 
     def __repr__(self):
         return f'<Ticket {self.id}, {self.ticket_description}, {self.ticket_price}, {self.ticket_type}, {self.available}>'
@@ -86,7 +88,7 @@ class Venue(db.Model, SerializerMixin):
     name = db.Column(db.String)
     address = db.Column(db.String)
     capacity = db.Column(db.Integer)
-    image= db.Column(db.String)
+    image = db.Column(db.String)
     
     events = db.relationship('Event', back_populates='venue', cascade='all, delete-orphan')
 
@@ -106,13 +108,13 @@ class Event(db.Model, SerializerMixin):
     event_time = db.Column(db.String)
     organizer_id = db.Column(db.Integer, db.ForeignKey('organizers.id'))
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
-    image= db.Column(db.String)
+    image = db.Column(db.String)
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
-    ticket= db.relationship('Ticket', back_populates='event')
+    tickets = db.relationship('Ticket', back_populates='event', cascade='all, delete-orphan')
 
-    serialize_rules = ("-organizer.events", "-venue.events",)
+    serialize_rules = ("-organizer.events", "-venue.events", "-tickets.event",)
 
     def __repr__(self):
         return f"<Event {self.event_name}', '{self.event_date}>"

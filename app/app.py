@@ -124,7 +124,7 @@ def events():
     if request.method == 'GET':
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict(rules=("-organizer", "-venue", "-ticket"))
+            event_dict = event.to_dict(rules=("-organizer", "-venue", "-tickets",))
             events.append(event_dict)
         if len(events) == 0:
                 return jsonify({"Message": "There are no events yet"}), 404
@@ -175,7 +175,57 @@ def get_event(id):
         event.organizer_id = data.get('organizer_id', event.organizer_id)
         event.venue_id = data.get('venue_id', event.venue_id)
         db.session.commit()
-        return jsonify(event.to_dict()), 200  # Added status code
+        return jsonify(event.to_dict()), 200  
+@app.route("/tickets", methods=["GET", "POST"])
+def tickets():
+    if request.method == "GET":
+        tickets = []
+        for ticket in Ticket.query.all():
+            ticket_dict = ticket.to_dict(rules=("-bookings", "-event",))
+            tickets.append(ticket_dict)
+        
+        response = make_response(tickets, 200)  
+        return response
+
+    elif request.method == "POST":
+        new_ticket = Ticket(
+            price=request.form.get("price"),
+            ticket_type=request.form.get("ticket_type"),
+            available=request.form.get("available"),
+        )
+        db.session.add(new_ticket)
+        db.session.commit()
+        ticket_dict = new_ticket.to_dict("-bookings",)
+        response = make_response(ticket_dict, 201)
+        return response
+
+
+@app.route("/tickets/<int:id>", methods=["PATCH"])
+def ticket_by_id(id):
+    ticket = Ticket.query.filter(Ticket.id == id).first()
+    for attr in request.form:
+        setattr(ticket, attr, request.form.get(attr))
+    db.session.add(ticket)
+    db.session.commit()
+    ticket_dict = ticket.to_dict("-bookings",)
+    response = make_response(ticket_dict, 200)
+    return response
+
+@app.route('/ticket_event/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def get_ticket_by_event(id):
+    print(id)
+    
+    if request.method == 'GET':
+        ticket= Ticket.query.all()
+
+        if ticket is None:
+            return jsonify({'message': ' not found'}), 404
+        ticket.query.filter_by(event_id=id)
+        
+        
+        one_customer = ticket.to_dict(rules=('-bookings','-event',))
+        return jsonify(one_customer), 200
+    
 
 
     
