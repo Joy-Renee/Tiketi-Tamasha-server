@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy import MetaData
-from uuid import uuid4
 
 metadata = MetaData(
     naming_convention={
@@ -11,13 +10,10 @@ metadata = MetaData(
 
 db = SQLAlchemy(metadata=metadata)
 
-def get_uuid():
-    return uuid4().hex
-
 class Customer(db.Model, SerializerMixin):
     __tablename__ = 'customers'
 
-    id = db.Column(db.String, primary_key=True, unique=True, default=get_uuid)
+    id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     phone_number = db.Column(db.String, nullable=False)
@@ -55,7 +51,7 @@ class Booking(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     booking_date = db.Column(db.String)
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
-    customer_id = db.Column(db.String, db.ForeignKey('customers.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
 
     ticket = db.relationship('Ticket', back_populates='bookings')
     customer = db.relationship('Customer', back_populates='bookings')
@@ -124,7 +120,7 @@ class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.String, db.ForeignKey('customers.id'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'))
     order_date = db.Column(db.DateTime)
     total_price = db.Column(db.Float)
 

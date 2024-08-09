@@ -1,4 +1,4 @@
-from app import app
+from app import app, bcrypt
 from models import db, Venue, Organizer, Event, Customer, Ticket, Booking, Payment, Order
 from sqlalchemy.exc import IntegrityError
 import datetime
@@ -140,9 +140,9 @@ def seed_data():
         
         # Add Customers
         customers = [
-            Customer(customer_name="Kelvin", email="kelvin@example.com", phone_number=1234567890, password="password1"),
-            Customer(customer_name="Mary", email="mary@example.com", phone_number=2345678901, password="password2"),
-            Customer(customer_name="Maureen", email="maureen@example.com", phone_number=3456789012, password="password3")
+            Customer(customer_name="Kelvin", email="kelvin@example.com", phone_number=1234567890, password=bcrypt.generate_password_hash("password1").decode('utf-8')),
+            Customer(customer_name="Mary", email="mary@example.com", phone_number=2345678901, password=bcrypt.generate_password_hash("password2").decode('utf-8')),
+            Customer(customer_name="Maureen", email="maureen@example.com", phone_number=3456789012, password=bcrypt.generate_password_hash("password3").decode('utf-8'))
         ]
         db.session.add_all(customers)
         

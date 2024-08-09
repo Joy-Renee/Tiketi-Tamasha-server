@@ -6,10 +6,16 @@ from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
+import random
+from datetime import timedelta
 load_dotenv()
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = "ticketi"+str(random.randint(1,100))
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 
 app.config['SECRET_KEY'] = 'cairocoders-ednalan'
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URI')
@@ -24,6 +30,41 @@ CORS(app, supports_credentials=True)
 # with app.app_context():
 #     db.create_all()
 
+@app.route("/login", methods=["POST"])
+def login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    user = Customer.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity = user.id)
+        return jsonify({"access_token":access_token})
+    else:
+        return jsonify({"message": "Invalid email or password"}), 401
+
+@app.route("/current_user", methods = ["GET"])
+@jwt_required()
+def get_current_user():
+    current_user_id = get_jwt_identity()
+    current_user = Customer.query.get(current_user_id)
+
+    if current_user:
+        return jsonify({"id": current_user_id, "name":current_user.customer_name, "email": current_user.email}), 200
+    else:
+        jsonify({"error": "Customer not found"}), 404
+
+BLACKLIST = set()
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blocklist(jwt_header, decrypted_token):
+    return decrypted_token['jti'] in BLACKLIST
+
+@app.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    BLACKLIST.add(jti)
+    return jsonify({"Success": "SUccessfully logged out"}), 200
 
 @app.route("/customers", methods=["GET", "POST"])
 def customers():
@@ -44,7 +85,7 @@ def customers():
             customer_name=data.get("customer_name"),
             email=data.get("email"),
             phone_number=data.get("phone_number"),
-            password=data.get("password"),
+            password=bcrypt.generate_password_hash(data.get("password")).decode('utf-8')
         )
         db.session.add(new_customer)
         db.session.commit()
@@ -97,7 +138,10 @@ def get_customer(id):
 
 
 @app.route("/bookings", methods=["GET", "POST"])
+@jwt_required()
 def bookings():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         bookings = []
         for book in Booking.query.all():
@@ -114,7 +158,8 @@ def bookings():
         new_booking = Booking(
             booking_date=data.get("booking_date"),
             ticket_id=data.get("ticket_id"),
-            customer_id=data.get("customer_id"),
+            # customer_id=data.get("customer_id"),
+            customer_id=current_user_id
         )
         db.session.add(new_booking)
         db.session.commit()
@@ -397,50 +442,50 @@ def get_organizer(id):
 
         return jsonify({"message": "Customer deleted successfully"}), 200
 
-@app.route("/signup", methods=["POST"])
-def signup():
-    customer_name = request.json["customer_name"]
-    email = request.json["email"]
-    phone_number = request.json["phone_number"]
-    password = request.json["password"]
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     customer_name = request.json["customer_name"]
+#     email = request.json["email"]
+#     phone_number = request.json["phone_number"]
+#     password = request.json["password"]
 
-    user_exists = Customer.query.filter_by(email=email).first() is not None
+#     user_exists = Customer.query.filter_by(email=email).first() is not None
 
-    if user_exists:
-        return jsonify({"error": "Email already exists"}), 409
+#     if user_exists:
+#         return jsonify({"error": "Email already exists"}), 409
     
-    hashed_password = bcrypt.generate_password_hash(password)
-    new_user = Customer(customer_name=customer_name, email=email, phone_number=phone_number, password=hashed_password)
+#     hashed_password = bcrypt.generate_password_hash(password)
+#     new_user = Customer(customer_name=customer_name, email=email, phone_number=phone_number, password=hashed_password)
 
-    db.session.add(new_user)
-    db.session.commit()
+#     db.session.add(new_user)
+#     db.session.commit()
 
-    session["user_id"] = new_user.id
+#     session["user_id"] = new_user.id
 
-    return jsonify({
-        "id": new_user.id,
-        "email": new_user.email
-    })
+#     return jsonify({
+#         "id": new_user.id,
+#         "email": new_user.email
+#     })
 
-@app.route("/login", methods=["POST"])
-def login_user():
-    email = request.json["email"]
-    password = request.json["password"]
+# @app.route("/login", methods=["POST"])
+# def login_user():
+#     email = request.json["email"]
+#     password = request.json["password"]
 
-    user = Customer.query.filter_by(email=email).first()
+#     user = Customer.query.filter_by(email=email).first()
 
-    if user is None:
-        return jsonify({"error":"Unauthorized Access"}), 401
+#     if user is None:
+#         return jsonify({"error":"Unauthorized Access"}), 401
     
-    if not bcrypt.check_password_hash(user.password, password):
-        return jsonify({"error": "Unauthorized"}), 401
+#     if not bcrypt.check_password_hash(user.password, password):
+#         return jsonify({"error": "Unauthorized"}), 401
     
-    session["user_id"] = user.id
+#     session["user_id"] = user.id
 
-    return jsonify({
-        "id": user.id,
-        "email": user.email
-    })
+#     return jsonify({
+#         "id": user.id,
+#         "email": user.email
+#     })
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
