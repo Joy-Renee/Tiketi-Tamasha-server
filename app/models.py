@@ -37,6 +37,7 @@ class Ticket(db.Model, SerializerMixin):
     available = db.Column(db.Integer)
 
     bookings = db.relationship('Booking', back_populates='ticket', cascade='all, delete-orphan')
+    event = db.relationship('Event', back_populates='ticket', cascade= 'all, delete-orphan')
 
     serialize_rules = ("-bookings.ticket",)
 
@@ -109,6 +110,7 @@ class Event(db.Model, SerializerMixin):
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
+    ticket= db.relationship('Ticket', back_populates='event')
 
     serialize_rules = ("-organizer.events", "-venue.events",)
 

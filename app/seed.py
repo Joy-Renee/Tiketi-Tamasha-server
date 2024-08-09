@@ -147,7 +147,7 @@ def seed_data():
         
         # Add Tickets
         tickets = [
-            Ticket(ticket_description="Regular", ticket_price=50.0, ticket_type="REG", available=100),
+            Ticket(ticket_description="Regular", ticket_price=50.0, ticket_type="REG", available=100, ),
             Ticket(ticket_description="VIP", ticket_price=100.0, ticket_type="VIP", available=50),
             Ticket(ticket_description="Early Bird", ticket_price=30.0, ticket_type="EB", available=200)
         ]

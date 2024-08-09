@@ -124,7 +124,7 @@ def events():
     if request.method == 'GET':
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict()
+            event_dict = event.to_dict(rules=("-organizer", "-venue", "-ticket"))
             events.append(event_dict)
         if len(events) == 0:
                 return jsonify({"Message": "There are no events yet"}), 404
