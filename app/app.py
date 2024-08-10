@@ -202,53 +202,42 @@ def get_event(id):
 @app.route("/venues", methods=["GET", "POST"])
 def venues():
     if request.method == "GET":
-        venues = []
-        for venue in Venue.query.all():
-            venue_dict = venue.to_dict(rules=())
-            venues.append(venue_dict)
-            response = make_response(venues, 200)
-            return response
+        venues = [venue.to_dict() for venue in Venue.query.all()]
+        return make_response(jsonify(venues), 200)
+
     elif request.method == "POST":
+        data = request.get_json()
         new_venue = Venue(
-            name=request.form.get("name"),
-            address=request.form.get("address"),
-            capacity=request.form.get("capacity"),
+            name=data.get("name"),
+            address=data.get("address"),
+            capacity=data.get("capacity"),
         )
         db.session.add(new_venue)
         db.session.commit()
-        venue_dict = new_venue.to_dict()
-        response = make_response(venue_dict, 201)
-        return response
+        return jsonify(new_venue.to_dict()), 201
 
 
-@app.route("/venues/<int:id>", methods=["GET","PATCH", "DELETE"])
+@app.route("/venues/<int:id>", methods=["GET", "PATCH", "DELETE"])
 def venue_by_id(id):
+    venue = Venue.query.get(id)
+    if not venue:
+        return jsonify({"Message": "Venue not found"}), 404
+
     if request.method == "GET":
-        venue=Venue.query.filter_by(id==id).first()
-        venue_dict=venue.to_dict()
-        response=make_response(venue_dict, 200)
-        return response
-    elif request.method == "DELETE":
-        venue = Venue.query.filter(Venue.id == id).first()
-        db.session.delete(venue)
-        db.session.commit()
-        response_body = {
-            "Deleted successfuly": True,
-            "message": "The venue has been successfully deleted",
-        }
-        response = make_response(response_body, 200)
-        return response
+        return jsonify(venue.to_dict()), 200
 
     elif request.method == "PATCH":
-
-        venue = Venue.query.filter(Venue.id == id).first()
-        for attr in request.form:
-            setattr(venue, attr, request.form.get(attr))
-        db.session.add(venue)
+        data = request.get_json()
+        for key, value in data.items():
+            if hasattr(venue, key):
+                setattr(venue, key, value)
         db.session.commit()
-        venue_dict = venue.to_dict()
-        response = make_response(venue_dict, 200)
-        return response
+        return jsonify(venue.to_dict()), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(venue)
+        db.session.commit()
+        return jsonify({"Message": "Venue deleted successfully"}), 200
 
 
 @app.route("/tickets", methods=["GET", "POST"])
@@ -273,22 +262,22 @@ def tickets():
         return response
 
 
-@app.route("/tickets/<int:id>", methods=["GET","PATCH"])
+@app.route("/tickets/<int:id>", methods=["GET", "PATCH"])
 def ticket_by_id(id):
+    ticket = Ticket.query.get(id)
+    if not ticket:
+        return jsonify({"Message": "Ticket not found"}), 404
+
     if request.method == "GET":
-        ticket=Ticket.query.filter_by(id==id).first()
-        ticket_dict=ticket.to_dict()
-        response=make_response(ticket_dict, 200)
-        return response
+        return jsonify(ticket.to_dict()), 200
+
     elif request.method == "PATCH":
-        ticket = Ticket.query.filter(Ticket.id == id).first()
-        for attr in request.form:
-            setattr(ticket, attr, request.form.get(attr))
-        db.session.add(ticket)
+        data = request.get_json()
+        for key, value in data.items():
+            if hasattr(ticket, key):
+                setattr(ticket, key, value)
         db.session.commit()
-        ticket_dict = ticket.to_dict()
-        response = make_response(ticket_dict, 200)
-        return response
+        return jsonify(ticket.to_dict()), 200
 
 @app.route("/orders", methods=["GET", "POST"])
 def orders():
@@ -345,8 +334,8 @@ def payments():
         for payment in Payment.query.all():
             payment_dict = payment.to_dict()
             payments.append(payment_dict)
-            response = make_response(payments, 200)
-            return response
+        response = make_response(payments, 200)
+        return response
     elif request.method == "POST":
         new_payment = Payment(
             payment_date=request.form.get("payment_date"),
