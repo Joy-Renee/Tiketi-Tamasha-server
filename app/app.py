@@ -221,14 +221,9 @@ def venues():
         return response
 
 
-@app.route("/venues/<int:id>", methods=["GET","PATCH", "DELETE"])
+@app.route("/venues/<int:id>", methods=["PATCH", "DELETE"])
 def venue_by_id(id):
-    if request.method == "GET":
-        venue=Venue.query.filter_by(id==id).first()
-        venue_dict=venue.to_dict()
-        response=make_response(venue_dict, 200)
-        return response
-    elif request.method == "DELETE":
+    if request.method == "DELETE":
         venue = Venue.query.filter(Venue.id == id).first()
         db.session.delete(venue)
         db.session.commit()
@@ -258,8 +253,8 @@ def tickets():
         for ticket in Ticket.query.all():
             ticket_dict = ticket.to_dict()
             tickets.append(ticket_dict)
-        response = make_response(tickets, 200)
-        return response
+            response = make_response(tickets, 200)
+            return response
     elif request.method == "POST":
         new_ticket = Ticket(
             price=request.form.get("price"),
@@ -273,22 +268,16 @@ def tickets():
         return response
 
 
-@app.route("/tickets/<int:id>", methods=["GET","PATCH"])
+@app.route("/tickets/<int:id>", methods=["PATCH"])
 def ticket_by_id(id):
-    if request.method == "GET":
-        ticket=Ticket.query.filter_by(id==id).first()
-        ticket_dict=ticket.to_dict()
-        response=make_response(ticket_dict, 200)
-        return response
-    elif request.method == "PATCH":
-        ticket = Ticket.query.filter(Ticket.id == id).first()
-        for attr in request.form:
-            setattr(ticket, attr, request.form.get(attr))
-        db.session.add(ticket)
-        db.session.commit()
-        ticket_dict = ticket.to_dict()
-        response = make_response(ticket_dict, 200)
-        return response
+    ticket = Ticket.query.filter(Ticket.id == id).first()
+    for attr in request.form:
+        setattr(ticket, attr, request.form.get(attr))
+    db.session.add(ticket)
+    db.session.commit()
+    ticket_dict = ticket.to_dict()
+    response = make_response(ticket_dict, 200)
+    return response
 
 @app.route("/orders", methods=["GET", "POST"])
 def orders():
