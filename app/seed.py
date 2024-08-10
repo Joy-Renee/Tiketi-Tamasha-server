@@ -17,7 +17,7 @@ def seed_data():
 
         # Add Venues
         venues = [
-            Venue(name="Uhuru Gardens", address="Langata Road", capacity=2000, image="https://lh3.googleusercontent.com/P6kpuuIYXzr5ERF1-76XjHhdvbm6e-WUcTFJt94ppSQVVtvySQ3JVV6bGj5RjT4atrYEIlQVpHeerV9OS5CBOGwa_YwWna2hznTv7A=s750"),
+            Venue(name="Uhuru Gardens", address="Langata Road", capacity=9000, image="https://lh3.googleusercontent.com/P6kpuuIYXzr5ERF1-76XjHhdvbm6e-WUcTFJt94ppSQVVtvySQ3JVV6bGj5RjT4atrYEIlQVpHeerV9OS5CBOGwa_YwWna2hznTv7A=s750"),
             Venue(name="Carnival Grounds", address="Mombasa", capacity=5000, image="https://www.shutterstock.com/image-photo/nairobi-kenya-september-15-2013-260nw-771906451.jpg"),
             Venue(name="Diani Resorts", address="Diani Mombasa", capacity=1500, image ="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/56/73/ed/diani-sea-resort.jpg?w=700&h=-1&s=1"),
             Venue(name="KICC Grounds", address="Nairobi City Square", capacity=1000, image="https://ocdn.eu/images/pulscms/MWM7MDA_/0e3817b9f5dd05c254990d47eb0c685f.jpeg"),
@@ -26,8 +26,8 @@ def seed_data():
             Venue(name="Tamasha Eldoret", address="Eldoret", capacity=2000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnXQ81ZAJ4Di8K-itdoakn-vY7RCmFweyQ5w&s"),
             Venue(name="Jamii Executive Gardens", address="mwea", capacity=3000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOKQgbwKQ85CArXWaAd5Fb1WO01deTbwPmT2olAtwFtzr--9GVeIEv17674gMKWNyofu4&usqp=CAU"),
             Venue(name="Ngong Racecourse", address="Ngong", capacity=1000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9BSZomf8Ks5R4ddnHEGjCpcjyYuVRKyPWYQ&s"),
-            Venue(name="Hells gate national park", address="Naivasha", capacity=5000, image="https://cdn.standardmedia.co.ke/images/sunday/wzmkpihitqrstob5d6bf41808241.jpg"),
-            Venue(name="K1 lounge", address="Westlands", capacity=500, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlAg3ONmytH1crE5DX7t2KuSooErOSCnnD6A&s"),
+            Venue(name="Hells gate national park", address="Naivasha", capacity=8000, image="https://cdn.standardmedia.co.ke/images/sunday/wzmkpihitqrstob5d6bf41808241.jpg"),
+            Venue(name="K1 lounge", address="Westlands", capacity=1500, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlAg3ONmytH1crE5DX7t2KuSooErOSCnnD6A&s"),
             Venue(name="The Embassy", address="thika road roasters", capacity=1000, image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3jV1yZ_6oPYGINnBKA4hGSY7LsWTMB_RTjw&s"),
         ]
         db.session.add_all(venues)
@@ -74,7 +74,7 @@ def seed_data():
             Event(
                 event_name="Oktober Fest",
                 description="Karibu OktobaFest, East Africa's biggest beer festival where we come together to celebrate our vibrant culture. Come see HOW WE DO all things culture in East Africa: From our food, music, dance, fashion, art, gaming & stories shared over beer that connects us to celebrate the culture we love.",
-                venue=venues[2],
+                venue=venues[1],
                 event_date="2024-07-12",
                 event_time="17:00",
                 organizer=organizers[2],
@@ -168,49 +168,49 @@ def seed_data():
             Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[0]),
             Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[0]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=100.0, ticket_type="EB", available=500, event=events[1]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[1]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[1]),
+            Ticket(ticket_description="Early Bird", ticket_price=100.0, ticket_type="EB", available=2000, event=events[1]),
+            Ticket(ticket_description="Regular", ticket_price=150.0, ticket_type="REG", available=2000, event=events[1]),
+            Ticket(ticket_description="Vip", ticket_price=250.0, ticket_type="VIP", available=1000, event=events[1]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[2]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[2]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[2]),
+            Ticket(ticket_description="Early Bird", ticket_price=80.0, ticket_type="EB", available=300, event=events[2]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=700, event=events[2]),
+            Ticket(ticket_description="Vip", ticket_price=250.0, ticket_type="VIP", available=500, event=events[2]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[3]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[3]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[3]),
+            Ticket(ticket_description="Early Bird", ticket_price=110.0, ticket_type="EB", available=1000, event=events[3]),
+            Ticket(ticket_description="Regular", ticket_price=250.0, ticket_type="REG", available=2500, event=events[3]),
+            Ticket(ticket_description="Vip", ticket_price=300.0, ticket_type="VIP", available=1500, event=events[3]),
 
             Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[4]),
             Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[4]),
             Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[4]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[5]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[5]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[5]),
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=200, event=events[5]),
+            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=500, event=events[5]),
+            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=300, event=events[5]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[6]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[6]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[6]),
+            Ticket(ticket_description="Early Bird", ticket_price=70.0, ticket_type="EB", available=2200, event=events[6]),
+            Ticket(ticket_description="Regular", ticket_price=140.0, ticket_type="REG", available=3800, event=events[6]),
+            Ticket(ticket_description="Vip", ticket_price=280.0, ticket_type="VIP", available=2000, event=events[6]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[7]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[7]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[7]),
+            Ticket(ticket_description="Early Bird", ticket_price=25.0, ticket_type="EB", available=1000, event=events[7]),
+            Ticket(ticket_description="Regular", ticket_price=45.0, ticket_type="REG", available=500, event=events[7]),
+            Ticket(ticket_description="Vip", ticket_price=70.0, ticket_type="VIP", available=500, event=events[7]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[8]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[8]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[8]),
+            Ticket(ticket_description="Early Bird", ticket_price=30.0, ticket_type="EB", available=100, event=events[8]),
+            Ticket(ticket_description="Regular", ticket_price=70.0, ticket_type="REG", available=450, event=events[8]),
+            Ticket(ticket_description="Vip", ticket_price=90.0, ticket_type="VIP", available=450, event=events[8]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[9]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[9]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[9]),
+            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=200, event=events[9]),
+            Ticket(ticket_description="Regular", ticket_price=70.0, ticket_type="REG", available=650, event=events[9]),
+            Ticket(ticket_description="Vip", ticket_price=100.0, ticket_type="VIP", available=650, event=events[9]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[10]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[10]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[10]),
+            Ticket(ticket_description="Early Bird", ticket_price=20.0, ticket_type="EB", available=50, event=events[10]),
+            Ticket(ticket_description="Regular", ticket_price=50.0, ticket_type="REG", available=250, event=events[10]),
+            Ticket(ticket_description="Vip", ticket_price=90.0, ticket_type="VIP", available=150, event=events[10]),
 
-            Ticket(ticket_description="Early Bird", ticket_price=50.0, ticket_type="EB", available=500, event=events[11]),
-            Ticket(ticket_description="Regular", ticket_price=100.0, ticket_type="REG", available=1500, event=events[11]),
-            Ticket(ticket_description="Vip", ticket_price=200.0, ticket_type="VIP", available=1200, event=events[11]),
+            Ticket(ticket_description="Early Bird", ticket_price=60.0, ticket_type="EB", available=3000, event=events[11]),
+            Ticket(ticket_description="Regular", ticket_price=80.0, ticket_type="REG", available=3000, event=events[11]),
+            Ticket(ticket_description="Vip", ticket_price=120.0, ticket_type="VIP", available=3000, event=events[11]),
 
         ]
         db.session.add_all(tickets)

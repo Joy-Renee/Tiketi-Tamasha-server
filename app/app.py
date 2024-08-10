@@ -211,20 +211,15 @@ def ticket_by_id(id):
     response = make_response(ticket_dict, 200)
     return response
 
-@app.route('/ticket_event/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def get_ticket_by_event(id):
-    print(id)
+@app.route('/tickets/event/<int:event_id>', methods=['GET'])
+def get_ticket_by_event(event_id):
+    tickets = Ticket.query.filter_by(event_id=event_id).all()
+    if not tickets:
+        return jsonify({'message': 'No tickets found for this event'}), 404
     
-    if request.method == 'GET':
-        ticket= Ticket.query.all()
+    tickets_list = [ticket.to_dict(rules=('-bookings', '-event')) for ticket in tickets]
+    return jsonify(tickets_list), 200
 
-        if ticket is None:
-            return jsonify({'message': ' not found'}), 404
-        ticket.query.filter_by(event_id=id)
-        
-        
-        one_customer = ticket.to_dict(rules=('-bookings','-event',))
-        return jsonify(one_customer), 200
     
 
 
