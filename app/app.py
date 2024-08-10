@@ -215,14 +215,14 @@ def events():
 def get_event(id):
 
     if request.method == "GET":
-        events = Event.query.filter_by(id == id).first()
+        events = Event.query.filter_by(id = id).first()
         if events is None:
             return jsonify({"Message": "Event not found"}), 404
         event = events.to_dict()
         return jsonify(event), 200
 
     elif request.method == "DELETE":
-        event = Event.query.filter_by(Event.id == id).first()
+        event = Event.query.filter_by(Event.id = id).first()
         if event is None:
             return jsonify({"Message": "Event not found"}), 404
         db.session.delete(event)
