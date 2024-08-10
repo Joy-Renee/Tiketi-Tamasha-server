@@ -165,7 +165,6 @@ def bookings():
         db.session.commit()
         return jsonify({"Message": "Booking done successfuly"})
 
-
 @app.route("/events", methods=["GET", "POST"])
 def events():
     if request.method == "GET":
@@ -441,6 +440,19 @@ def get_organizer(id):
         db.session.commit()
 
         return jsonify({"message": "Customer deleted successfully"}), 200
+    
+@app.route("/event_byvenue/<int:id>", methods=["GET", "PUT", "DELETE"])
+def get_event_byvenue(id):
+    if request.method == "GET":
+        events = []
+        for event in Event.query.all():
+            if event.venue_id == id:
+                event_dict = event.to_dict(rules=('-organizer', '-venue'))
+                events.append(event_dict)
+        if len(events) == 0:
+            return jsonify({"Message": "There are no events yet"}), 404
+        else:
+            return make_response(jsonify(events), 200)
 
 # @app.route("/signup", methods=["POST"])
 # def signup():

@@ -17,6 +17,8 @@ flask-restful = "*"
 python-dotenv = "*"
 flask-swagger-ui = "*"
 flask_bcrypt = "*"
+flask-jwt = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
