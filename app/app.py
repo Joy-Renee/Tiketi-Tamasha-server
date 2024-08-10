@@ -306,23 +306,25 @@ def tickets():
         response = make_response(ticket_dict, 201)
         return response
 
-
-@app.route("/tickets/<int:id>", methods=["GET", "PATCH"])
+@app.route("/tickets/<int:id>", methods=["PATCH"])
 def ticket_by_id(id):
-    ticket = Ticket.query.get(id)
-    if not ticket:
-        return jsonify({"Message": "Ticket not found"}), 404
+    ticket = Ticket.query.filter(Ticket.id == id).first()
+    for attr in request.form:
+        setattr(ticket, attr, request.form.get(attr))
+    db.session.add(ticket)
+    db.session.commit()
+    ticket_dict = ticket.to_dict()
+    response = make_response(ticket_dict, 200)
+    return response
 
-    if request.method == "GET":
-        return jsonify(ticket.to_dict()), 200
-
-    elif request.method == "PATCH":
-        data = request.get_json()
-        for key, value in data.items():
-            if hasattr(ticket, key):
-                setattr(ticket, key, value)
-        db.session.commit()
-        return jsonify(ticket.to_dict()), 200
+@app.route('/tickets/event/<int:event_id>', methods=['GET'])
+def get_ticket_by_event(event_id):
+    tickets = Ticket.query.filter_by(event_id=event_id).all()
+    if not tickets:
+        return jsonify({'message': 'No tickets found for this event'}), 404
+    
+    tickets_list = [ticket.to_dict(rules=('-bookings', '-event')) for ticket in tickets]
+    return jsonify(tickets_list), 200
 
 @app.route("/orders", methods=["GET", "POST"])
 def orders():

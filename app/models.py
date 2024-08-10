@@ -37,10 +37,14 @@ class Ticket(db.Model, SerializerMixin):
     ticket_type = db.Column(db.String)
     available = db.Column(db.Integer)
     order_id=db.Column(db.Integer,db.ForeignKey('orders.id'))
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+    
     order=db.relationship('Order',back_populates='tickets')
     bookings = db.relationship('Booking', back_populates='ticket', cascade='all, delete-orphan')
+    event = db.relationship('Event', back_populates='tickets')
 
-    serialize_rules = ("-bookings.ticket","-order.tickets")
+
+    serialize_rules = ("-bookings.ticket","-order.tickets", "-event.tickets",)
 
     def __repr__(self):
         return f'<Ticket {self.id}, {self.ticket_description}, {self.ticket_price}, {self.ticket_type}, {self.available}>'
@@ -111,8 +115,9 @@ class Event(db.Model, SerializerMixin):
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
+    tickets = db.relationship('Ticket', back_populates='event', cascade='all, delete-orphan')
 
-    serialize_rules = ("-organizer.events", "-venue.events",)
+    serialize_rules = ("-organizer.events", "-venue.events", "-tickets.event",)
 
     def __repr__(self):
         return f"<Event {self.event_name}', '{self.event_date}>"
