@@ -16,6 +16,7 @@ psycopg2-binary = "*"
 flask-restful = "*"
 python-dotenv = "*"
 flask-swagger-ui = "*"
+flask_bcrypt = "*"
 
 [dev-packages]
 
