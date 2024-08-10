@@ -306,16 +306,16 @@ def tickets():
         response = make_response(ticket_dict, 201)
         return response
 
-
 @app.route("/tickets/<int:id>", methods=["PATCH"])
-
-    elif request.method == "PATCH":
-        data = request.get_json()
-        for key, value in data.items():
-            if hasattr(ticket, key):
-                setattr(ticket, key, value)
-        db.session.commit()
-        return jsonify(ticket.to_dict()), 200
+def ticket_by_id(id):
+    ticket = Ticket.query.filter(Ticket.id == id).first()
+    for attr in request.form:
+        setattr(ticket, attr, request.form.get(attr))
+    db.session.add(ticket)
+    db.session.commit()
+    ticket_dict = ticket.to_dict()
+    response = make_response(ticket_dict, 200)
+    return response
 
 @app.route('/tickets/event/<int:event_id>', methods=['GET'])
 def get_ticket_by_event(event_id):
