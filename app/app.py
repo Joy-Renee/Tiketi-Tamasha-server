@@ -1,14 +1,23 @@
 from flask import Flask, request, make_response, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
+import random
+from datetime import timedelta
 load_dotenv()
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = "ticketi"+str(random.randint(1,100))
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+
 
 SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
 API_URL = '/static/swagger.json'  # Our API url (can of course be a local resource)
@@ -30,7 +39,7 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 )
 
 app.register_blueprint(swaggerui_blueprint)
-
+app.config['SECRET_KEY'] = 'cairocoders-ednalan'
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URI')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.json.compact = False
@@ -42,6 +51,42 @@ CORS(app)
 
 # with app.app_context():
 #     db.create_all()
+
+@app.route("/login", methods=["POST"])
+def login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    user = Customer.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity = user.id)
+        return jsonify({"access_token":access_token})
+    else:
+        return jsonify({"message": "Invalid email or password"}), 401
+
+@app.route("/current_user", methods = ["GET"])
+@jwt_required()
+def get_current_user():
+    current_user_id = get_jwt_identity()
+    current_user = Customer.query.get(current_user_id)
+
+    if current_user:
+        return jsonify({"id": current_user_id, "name":current_user.customer_name, "email": current_user.email}), 200
+    else:
+        jsonify({"error": "Customer not found"}), 404
+
+BLACKLIST = set()
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blocklist(jwt_header, decrypted_token):
+    return decrypted_token['jti'] in BLACKLIST
+
+@app.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    BLACKLIST.add(jti)
+    return jsonify({"Success": "SUccessfully logged out"}), 200
 
 
 @app.route("/customers", methods=["GET", "POST"])
