@@ -40,7 +40,7 @@ class Ticket(db.Model, SerializerMixin):
     order=db.relationship('Order',back_populates='tickets')
     bookings = db.relationship('Booking', back_populates='ticket', cascade='all, delete-orphan')
 
-    serialize_rules = ("-bookings.ticket","-order.ticket")
+    serialize_rules = ("-bookings.ticket","-order.tickets")
 
     def __repr__(self):
         return f'<Ticket {self.id}, {self.ticket_description}, {self.ticket_price}, {self.ticket_type}, {self.available}>'
@@ -127,9 +127,9 @@ class Order(db.Model, SerializerMixin):
 
     customer = db.relationship('Customer', back_populates='orders')
     payment = db.relationship('Payment', back_populates='orders')
-    ticket=db.relationship('Ticket', back_populates='order')
+    tickets = db.relationship('Ticket', back_populates='order')
 
-    serialize_rules = ("-customer.orders", "-payment.orders","-ticket.order")
+    serialize_rules = ("-customer.orders", "-payment.orders","-tickets.order")
     def __repr__(self):
         return f'<Order {self.id}, {self.customer_id}, {self.order_date}, {self.order_total}>'
 
