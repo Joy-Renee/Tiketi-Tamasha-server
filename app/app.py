@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -215,14 +215,14 @@ def events():
 def get_event(id):
 
     if request.method == "GET":
-        events = Event.query.filter(id == id).first()
+        events = Event.query.filter_by(id = id).first()
         if events is None:
             return jsonify({"Message": "Event not found"}), 404
         event = events.to_dict()
         return jsonify(event), 200
 
     elif request.method == "DELETE":
-        event = Event.query.filter(Event.id == id).first()
+        event = Event.query.filter_by(id = id).first()
         if event is None:
             return jsonify({"Message": "Event not found"}), 404
         db.session.delete(event)
@@ -247,7 +247,7 @@ def get_event(id):
 @app.route("/venues", methods=["GET", "POST"])
 def venues():
     if request.method == "GET":
-        venues = [venue.to_dict() for venue in Venue.query.all()]
+        venues = [venue.to_dict(rules=("-events",)) for venue in Venue.query.all()]
         return make_response(jsonify(venues), 200)
 
     elif request.method == "POST":
@@ -290,7 +290,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict()
+            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", "-event",))
             tickets.append(ticket_dict)
         response = make_response(tickets, 200)
         return response
@@ -332,7 +332,7 @@ def orders():
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
-            order_dict = order.to_dict()
+            order_dict = order.to_dict(rules=("-customer", "-payment", "-tickets",))
             orders.append(order_dict)
             response = make_response(orders, 200)
             return response
@@ -380,7 +380,7 @@ def payments():
     if request.method == "GET":
         payments = []
         for payment in Payment.query.all():
-            payment_dict = payment.to_dict()
+            payment_dict = payment.to_dict(rules=("-orders",))
             payments.append(payment_dict)
         response = make_response(payments, 200)
         return response

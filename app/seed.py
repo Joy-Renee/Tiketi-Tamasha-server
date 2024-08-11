@@ -1,5 +1,5 @@
 from app import app
-from models import db, Venue, Organizer, Event, Customer, Ticket, Booking
+from models import db, Venue, Organizer, Event, Customer, Ticket, Booking, Payment, Order
 from sqlalchemy.exc import IntegrityError
 import datetime
 
