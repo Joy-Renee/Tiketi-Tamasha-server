@@ -6,14 +6,14 @@ import datetime
 def seed_data():
     with app.app_context():
         # Clear existing data
-        db.session.query(Venue).delete()
-        db.session.query(Organizer).delete()
-        db.session.query(Event).delete()
-        db.session.query(Customer).delete()
+        db.session.query(Booking).delete()
+        db.session.query(Ticket).delete()
         db.session.query(Payment).delete()
         db.session.query(Order).delete()
-        db.session.query(Ticket).delete()
-        db.session.query(Booking).delete()
+        db.session.query(Event).delete()
+        db.session.query(Venue).delete()
+        db.session.query(Organizer).delete()
+        db.session.query(Customer).delete()
         db.session.commit()
 
         # Add Venues
