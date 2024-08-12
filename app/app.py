@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -108,7 +108,7 @@ def customers():
             customer_name=data.get("customer_name"),
             email=data.get("email"),
             phone_number=data.get("phone_number"),
-            password=data.get("password"),
+            password=bcrypt.generate_password_hash(data.get("password")).decode('utf-8')
         )
         db.session.add(new_customer)
         db.session.commit()
@@ -161,7 +161,10 @@ def get_customer(id):
 
 
 @app.route("/bookings", methods=["GET", "POST"])
+@jwt_required()
 def bookings():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         bookings = []
         for book in Booking.query.all():
@@ -178,7 +181,7 @@ def bookings():
         new_booking = Booking(
             booking_date=data.get("booking_date"),
             ticket_id=data.get("ticket_id"),
-            customer_id=data.get("customer_id"),
+            customer_id=current_user_id
         )
         db.session.add(new_booking)
         db.session.commit()
@@ -327,17 +330,20 @@ def get_ticket_by_event(event_id):
     return jsonify(tickets_list), 200
 
 @app.route("/orders", methods=["GET", "POST"])
+@jwt_required()
 def orders():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
             order_dict = order.to_dict(rules=("-customer", "-payment", "-tickets",))
             orders.append(order_dict)
-            response = make_response(orders, 200)
-            return response
+        response = make_response(orders, 200)
+        return response
     elif request.method == "POST":
         new_order = Order(
-            customer_id=request.form.get("customer_id"),
+            customer_id=current_user_id,
             order_date=request.form.get("order_date"),
             total_price=request.form.get("total_price"),
         )
