@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -64,12 +64,36 @@ def login():
         return jsonify({"access_token":access_token})
     else:
         return jsonify({"message": "Invalid email or password"}), 401
+    
+@app.route("/loginOrganizer", methods=["POST"])
+def loginOrganizer():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    user = Organizer.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity = user.id)
+        return jsonify({"access_token":access_token})
+    else:
+        return jsonify({"message": "Invalid email or password"}), 401
 
 @app.route("/current_user", methods = ["GET"])
 @jwt_required()
 def get_current_user():
     current_user_id = get_jwt_identity()
     current_user = Customer.query.get(current_user_id)
+
+    if current_user:
+        return jsonify({"id": current_user_id, "name":current_user.customer_name, "email": current_user.email}), 200
+    else:
+        jsonify({"error": "Customer not found"}), 404
+
+@app.route("/current_organizer", methods = ["GET"])
+@jwt_required()
+def get_current_organizer():
+    current_user_id = get_jwt_identity()
+    current_user = Organizer.query.get(current_user_id)
 
     if current_user:
         return jsonify({"id": current_user_id, "name":current_user.customer_name, "email": current_user.email}), 200
@@ -108,7 +132,7 @@ def customers():
             customer_name=data.get("customer_name"),
             email=data.get("email"),
             phone_number=data.get("phone_number"),
-            password=data.get("password"),
+            password=bcrypt.generate_password_hash(data.get("password")).decode('utf-8')
         )
         db.session.add(new_customer)
         db.session.commit()
@@ -161,7 +185,10 @@ def get_customer(id):
 
 
 @app.route("/bookings", methods=["GET", "POST"])
+@jwt_required()
 def bookings():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         bookings = []
         for book in Booking.query.all():
@@ -178,15 +205,26 @@ def bookings():
         new_booking = Booking(
             booking_date=data.get("booking_date"),
             ticket_id=data.get("ticket_id"),
-            customer_id=data.get("customer_id"),
+            customer_id=current_user_id
         )
         db.session.add(new_booking)
         db.session.commit()
         return jsonify({"Message": "Booking done successfuly"})
 
+@app.route('/booking/customer/<int:customer_id>', methods=['GET'])
+def get_booking_by_customer(customer_id):
+    bookings = Booking.query.filter_by(customer_id=customer_id).all()
+    if not bookings:
+        return jsonify({'message': 'No bookings done yet'}), 404
+    
+    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in bookings]
+    return jsonify(bookings_list), 200
 
 @app.route("/events", methods=["GET", "POST"])
+# @jwt_required()
 def events():
+    # current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         events = []
         for event in Event.query.all():
@@ -205,6 +243,7 @@ def events():
             event_time=data.get("event_time"),
             organizer_id=data.get("organizer_id"),
             venue_id=data.get("venue_id"),
+            image=data.get("image")
         )
         db.session.add(new_event)
         db.session.commit()
@@ -256,6 +295,7 @@ def venues():
             name=data.get("name"),
             address=data.get("address"),
             capacity=data.get("capacity"),
+            venue_price=data.get("venue_price")
         )
         db.session.add(new_venue)
         db.session.commit()
@@ -306,7 +346,6 @@ def tickets():
         response = make_response(ticket_dict, 201)
         return response
 
-
 @app.route("/tickets/<int:id>", methods=["PATCH"])
 def ticket_by_id(id):
     ticket = Ticket.query.filter(Ticket.id == id).first()
@@ -314,7 +353,7 @@ def ticket_by_id(id):
         setattr(ticket, attr, request.form.get(attr))
     db.session.add(ticket)
     db.session.commit()
-    ticket_dict = ticket.to_dict("-bookings",)
+    ticket_dict = ticket.to_dict()
     response = make_response(ticket_dict, 200)
     return response
 
@@ -328,17 +367,20 @@ def get_ticket_by_event(event_id):
     return jsonify(tickets_list), 200
 
 @app.route("/orders", methods=["GET", "POST"])
+@jwt_required()
 def orders():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         orders = []
         for order in Order.query.all():
             order_dict = order.to_dict(rules=("-customer", "-payment", "-tickets",))
             orders.append(order_dict)
-            response = make_response(orders, 200)
-            return response
+        response = make_response(orders, 200)
+        return response
     elif request.method == "POST":
         new_order = Order(
-            customer_id=request.form.get("customer_id"),
+            customer_id=current_user_id,
             order_date=request.form.get("order_date"),
             total_price=request.form.get("total_price"),
         )
@@ -395,6 +437,27 @@ def payments():
         payment_dict = new_payment.to_dict()
         response = make_response(payment_dict, 201)
         return response
+    
+@app.route("/paymentsorganizer", methods=["GET", "POST"])
+def paymentsorganizer():
+    if request.method == "GET":
+        payments = []
+        for payment in PaymentOrganizer.query.all():
+            payment_dict = payment.to_dict(rules=("-rents",))
+            payments.append(payment_dict)
+        response = make_response(payments, 200)
+        return response
+    elif request.method == "POST":
+        new_payment = PaymentOrganizer(
+            payment_date=request.form.get("payment_date"),
+            amount=request.form.get("amount"),
+            rent_id=request.form.get("rent_id"),
+        )
+        db.session.add(new_payment)
+        db.session.commit()
+        payment_dict = new_payment.to_dict()
+        response = make_response(payment_dict, 201)
+        return response
 
 
 @app.route("/organizers", methods = ("GET", "POST"))
@@ -415,8 +478,8 @@ def organizers():
         new_organizer = Organizer(
             organizer_name=data.get("organizer_name"),
             email=data.get("email"),
-            phone_number=data.get("phone_number"),
-            password=data.get("password"),
+            phone_number=data.get("phone_number"),           
+            password=bcrypt.generate_password_hash(data.get("password")).decode('utf-8')
         )
         db.session.add(new_organizer)
         db.session.commit()
