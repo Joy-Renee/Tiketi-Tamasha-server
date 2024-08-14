@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -211,9 +211,20 @@ def bookings():
         db.session.commit()
         return jsonify({"Message": "Booking done successfuly"})
 
+@app.route('/booking/customer/<int:customer_id>', methods=['GET'])
+def get_booking_by_customer(customer_id):
+    bookings = Booking.query.filter_by(customer_id=customer_id).all()
+    if not bookings:
+        return jsonify({'message': 'No bookings done yet'}), 404
+    
+    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in bookings]
+    return jsonify(bookings_list), 200
 
 @app.route("/events", methods=["GET", "POST"])
+@jwt_required()
 def events():
+    current_user_id = get_jwt_identity()
+
     if request.method == "GET":
         events = []
         for event in Event.query.all():
@@ -230,8 +241,9 @@ def events():
             event_date=data.get("event_date"),
             description=data.get("description"),
             event_time=data.get("event_time"),
-            organizer_id=data.get("organizer_id"),
+            organizer_id=current_user_id,
             venue_id=data.get("venue_id"),
+            image=data.get("image")
         )
         db.session.add(new_event)
         db.session.commit()
