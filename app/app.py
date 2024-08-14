@@ -221,9 +221,9 @@ def get_booking_by_customer(customer_id):
     return jsonify(bookings_list), 200
 
 @app.route("/events", methods=["GET", "POST"])
-@jwt_required()
+# @jwt_required()
 def events():
-    current_user_id = get_jwt_identity()
+    # current_user_id = get_jwt_identity()
 
     if request.method == "GET":
         events = []
@@ -241,7 +241,7 @@ def events():
             event_date=data.get("event_date"),
             description=data.get("description"),
             event_time=data.get("event_time"),
-            organizer_id=current_user_id,
+            organizer_id=data.get("organizer_id"),
             venue_id=data.get("venue_id"),
             image=data.get("image")
         )
