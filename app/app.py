@@ -527,6 +527,105 @@ def get_organizer(id):
 
         return jsonify({"message": "Customer deleted successfully"}), 200
 
+def get_mpesa_access_token():
+    consumer_key = '1f8Rg9d0EPa6TOEsqMomXMuxyHyx3EndK05EB2kyazzECD6q'
+    consumer_secret = 'XjMfUBMduqAMzF6KwqfK7GnuhpchRgckp2Ioxjllu7W2iNYEy192MAUUyovLnBLJ'
+    api_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+
+    response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+    token = response.json().get('access_token')
+    return token
+
+def initiate_payment(phone_number, amount):
+    try:
+        access_token = get_mpesa_access_token()
+        api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+        headers = {'Authorization': f'Bearer {access_token}'}
+
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        short_code = '174379'
+        passkey = 'MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjQwODE0MTkyNzI0'
+        password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
+
+        # Ensure the phone number is in the correct format
+        phone_number = phone_number.strip()
+        if not phone_number.startswith('254'):
+            phone_number = '254' + phone_number[1:]
+
+        payload = {
+            'BusinessShortCode': short_code,
+            'Password': password,
+            'Timestamp': timestamp,
+            'TransactionType': 'CustomerPayBillOnline',
+            'Amount': amount,
+            'PartyA': phone_number,
+            'PartyB': '174379',
+            'PhoneNumber': phone_number,
+            'CallBackURL': 'https://phase4-project-backend-server.onrender.com/callback',
+            'AccountReference': phone_number,
+            'TransactionDesc': 'Payment for event',
+        }
+
+        logging.info(f"Payload: {payload}")
+
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()
+        logging.info(f"Response: {response.json()}")
+
+        if 'CheckoutRequestID' not in response.json():
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response.json()}")
+            return {'error': 'Failed to initiate payment'}
+
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error initiating payment: {e}")
+        if e.response:
+            logging.error(f"Response content: {e.response.content}")
+        return {'error': 'Failed to initiate payment'}
+class PayResource(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+            logging.info(f"Received data: {data}")
+            phone_number = data.get('phone_number')
+            amount = data.get('amount')
+            user_id = data.get('user_id')  # Assuming user_id is passed from the frontend
+
+            response = initiate_payment(phone_number, amount)
+
+            if 'CheckoutRequestID' not in response:
+                logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
+                return {'error': 'Failed to initiate payment'}, 500
+
+            payment = Payment(
+                amount=amount,
+                phone_number=phone_number,
+                transaction_id=response['CheckoutRequestID'],
+                status='Pending',
+                user_id=user_id
+            )
+            db.session.add(payment)
+            db.session.commit()
+
+            return response
+        except Exception as e:
+            logging.error(f"Error in PayResource: {str(e)}")
+            return {'error': 'Internal server error'}, 500
+
+class PaymentsResource(Resource):
+    def get(self):
+        payments = Payment.query.all()
+        return [{
+            'id': payment.id,
+            'amount': payment.amount,
+            'phone_number': payment.phone_number,
+            'transaction_id': payment.transaction_id,
+            'status': payment.status,
+            'timestamp': payment.timestamp
+        } for payment in payments]
+
+api.add_resource(PayResource, '/pay')
+api.add_resource(PaymentsResource, '/payments')
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
