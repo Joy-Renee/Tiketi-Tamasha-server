@@ -10,9 +10,11 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
 import random
 from datetime import timedelta
+from flask_restful import Resource, Api
 load_dotenv()
 
 app = Flask(__name__)
+api = Api(app)
 app.config["JWT_SECRET_KEY"] = "ticketi"+str(random.randint(1,100))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 bcrypt = Bcrypt(app)
@@ -582,6 +584,7 @@ def initiate_payment(phone_number, amount):
         if e.response:
             logging.error(f"Response content: {e.response.content}")
         return {'error': 'Failed to initiate payment'}
+
 class PayResource(Resource):
     def post(self):
         try:
