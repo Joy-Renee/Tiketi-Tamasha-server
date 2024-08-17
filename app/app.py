@@ -563,7 +563,7 @@ def initiate_payment(phone_number, amount):
             'PartyA': phone_number,
             'PartyB': '174379',
             'PhoneNumber': phone_number,
-            'CallBackURL': 'https://phase4-project-backend-server.onrender.com/callback',
+            'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',
             'AccountReference': phone_number,
             'TransactionDesc': 'Payment for event',
         }
