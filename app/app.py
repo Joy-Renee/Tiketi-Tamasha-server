@@ -3,8 +3,8 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
-from email_utils import init_mail, send_registration_email 
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
+from .email_utils import init_mail, send_registration_email 
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -64,9 +64,11 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_DEBUG'] = True
 app.config['MAIL_USERNAME'] = 'vikakamau72@gmail.com'
 app.config['MAIL_PASSWORD'] = 'xpsn opvb qggt vicj'
-app.config['MAIL_DEFAULT_SENDER'] = 'vikakamau72@gmail.com'
+app.config['MAIL_DEFAULT_SENDER'] = ('TiketiTamasha' 'vikakamau72@gmail.com')
 app.config['MAIL_MAX_EMAILS'] = None
 app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+init_mail(app)
 
 
 @app.route("/login", methods=["POST"])
@@ -160,7 +162,7 @@ def customers():
             return jsonify({'Message': 'Customer was added succesfully and email was sent'}),201
         else:
             return jsonify({"Message": "Customer was added, but email failed", "error" : email_status['error']}), 201
-        # return jsonify({"Message": "Customer was added successfuly"})
+        
 
 
 @app.route("/customer/<int:id>", methods=["GET", "PUT", "DELETE"])

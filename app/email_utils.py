@@ -1,6 +1,6 @@
 from flask_mail import Mail, Message
 
-mail = None
+
 
 def init_mail(app):
     """Initialize the Flask-Mail extension with the app."""
@@ -8,11 +8,24 @@ def init_mail(app):
     mail = Mail(app)
 
 def send_registration_email(email, customer_name, phone_number):
-    """Send a registration confirmation email."""
+    """Send a registration confirmation email with a link to the login page."""
     try:
         msg = Message("Registration Successful",
                       recipients=[email])
-        msg.body = f"Hello {customer_name},\n\nThank you for registering!\n\nYour registration details:\nPhone: {phone_number}\nEmail: {email}"
+        
+        # Construct the email body with a link to the login page
+        msg.html = f"""
+        <p>Hello {customer_name},</p>
+        <p>Thank you for registering!</p>
+        <p>Your registration details:</p>
+        <ul>
+            <li>Phone: {phone_number}</li>
+            <li>Email: {email}</li>
+        </ul>
+        <p>Please <a href="https://tiketi-tamasha-client-omega.vercel.app/login">click here to login</a>.</p>
+        <p>Thank you!</p>
+        """
+
         mail.send(msg)
         return {"success": True}
     except Exception as e:
