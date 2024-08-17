@@ -534,8 +534,8 @@ def get_organizer(id):
         return jsonify({"message": "Customer deleted successfully"}), 200
 
 def get_mpesa_access_token():
-    consumer_key = '1f8Rg9d0EPa6TOEsqMomXMuxyHyx3EndK05EB2kyazzECD6q'
-    consumer_secret = 'XjMfUBMduqAMzF6KwqfK7GnuhpchRgckp2Ioxjllu7W2iNYEy192MAUUyovLnBLJ'
+    consumer_key = '35KRcaSFHWxRKu3gLWgG3JgpAGUKA78rRA7BjeE2vN529tXJ'
+    consumer_secret = 'xg4wAfPda9wGseSk5AN6yAoV6vAGNp4229esahXvARoxCRhXiCxxj33eR8q6eFp6'
     api_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
 
     response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
@@ -550,7 +550,7 @@ def initiate_payment(phone_number, amount):
 
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         short_code = '174379'
-        passkey = 'MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjQwODE0MTkyNzI0'
+        passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
         password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
 
         # Ensure the phone number is in the correct format
@@ -588,7 +588,6 @@ def initiate_payment(phone_number, amount):
         if e.response:
             logging.error(f"Response content: {e.response.content}")
         return {'error': 'Failed to initiate payment'}
-
 class PayResource(Resource):
     def post(self):
         try:
@@ -633,6 +632,7 @@ class PaymentsResource(Resource):
 
 api.add_resource(PayResource, '/pay')
 api.add_resource(PaymentsResource, '/payments')
+
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
