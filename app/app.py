@@ -13,6 +13,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import random
 from datetime import timedelta
 from flask_restful import Resource, Api
+from requests.auth import HTTPBasicAuth
 load_dotenv()
 
 app = Flask(__name__)
