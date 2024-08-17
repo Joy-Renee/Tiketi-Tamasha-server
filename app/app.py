@@ -548,7 +548,7 @@ def initiate_payment(phone_number, amount):
         api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
         headers = {'Authorization': f'Bearer {access_token}'}
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        short_code = '473367'
+        short_code = '174379'
         passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
         password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
 
@@ -558,13 +558,13 @@ def initiate_payment(phone_number, amount):
             phone_number = '254' + phone_number[1:]
 
         payload = {
-            'BusinessShortCode': 473367,
+            'BusinessShortCode': short_code,
             'Password': password,
             'Timestamp': timestamp,
             'TransactionType': 'CustomerPayBillOnline',
             'Amount': amount,
             'PartyA': phone_number,
-            'PartyB': 473367,
+            'PartyB': short_code,
             'PhoneNumber': phone_number,
             'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',  # Update this with your callback URL
             'AccountReference': phone_number,
