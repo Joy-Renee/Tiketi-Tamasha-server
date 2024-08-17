@@ -558,13 +558,13 @@ def initiate_payment(phone_number, amount):
             phone_number = '254' + phone_number[1:]
 
         payload = {
-            'BusinessShortCode': short_code,
+            'BusinessShortCode': 473367,
             'Password': password,
             'Timestamp': timestamp,
             'TransactionType': 'CustomerPayBillOnline',
             'Amount': amount,
             'PartyA': phone_number,
-            'PartyB': short_code,
+            'PartyB': 473367,
             'PhoneNumber': phone_number,
             'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',  # Update this with your callback URL
             'AccountReference': phone_number,
