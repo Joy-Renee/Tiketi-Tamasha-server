@@ -548,7 +548,7 @@ def initiate_payment(phone_number, amount):
         api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
         headers = {'Authorization': f'Bearer {access_token}'}
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        short_code = '174379'
+        short_code = '473367'
         passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
         password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
 
