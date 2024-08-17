@@ -537,17 +537,16 @@ def get_mpesa_access_token():
     consumer_key = '35KRcaSFHWxRKu3gLWgG3JgpAGUKA78rRA7BjeE2vN529tXJ'
     consumer_secret = 'xg4wAfPda9wGseSk5AN6yAoV6vAGNp4229esahXvARoxCRhXiCxxj33eR8q6eFp6'
     api_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-
     response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
     token = response.json().get('access_token')
     return token
 
+# Function to initiate payment
 def initiate_payment(phone_number, amount):
     try:
         access_token = get_mpesa_access_token()
         api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
         headers = {'Authorization': f'Bearer {access_token}'}
-
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         short_code = '174379'
         passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
@@ -565,15 +564,14 @@ def initiate_payment(phone_number, amount):
             'TransactionType': 'CustomerPayBillOnline',
             'Amount': amount,
             'PartyA': phone_number,
-            'PartyB': '174379',
+            'PartyB': short_code,
             'PhoneNumber': phone_number,
-            'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',
+            'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',  # Update this with your callback URL
             'AccountReference': phone_number,
-            'TransactionDesc': 'Payment for event',
+            'TransactionDesc': 'Payment for service',
         }
 
         logging.info(f"Payload: {payload}")
-
         response = requests.post(api_url, headers=headers, json=payload)
         response.raise_for_status()
         logging.info(f"Response: {response.json()}")
@@ -583,56 +581,34 @@ def initiate_payment(phone_number, amount):
             return {'error': 'Failed to initiate payment'}
 
         return response.json()
+
     except requests.exceptions.RequestException as e:
         logging.error(f"Error initiating payment: {e}")
         if e.response:
             logging.error(f"Response content: {e.response.content}")
         return {'error': 'Failed to initiate payment'}
-class PayResource(Resource):
-    def post(self):
-        try:
-            data = request.get_json()
-            logging.info(f"Received data: {data}")
-            phone_number = data.get('phone_number')
-            amount = data.get('amount')
-            user_id = data.get('user_id')  # Assuming user_id is passed from the frontend
 
-            response = initiate_payment(phone_number, amount)
+# Route to handle payment initiation
+@app.route('/pay', methods=['POST'])
+def pay():
+    try:
+        data = request.get_json()
+        logging.info(f"Received data: {data}")
 
-            if 'CheckoutRequestID' not in response:
-                logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
-                return {'error': 'Failed to initiate payment'}, 500
+        phone_number = data.get('phone_number')
+        amount = data.get('amount')
 
-            payment = Payment(
-                amount=amount,
-                phone_number=phone_number,
-                transaction_id=response['CheckoutRequestID'],
-                status='Pending',
-                user_id=user_id
-            )
-            db.session.add(payment)
-            db.session.commit()
+        response = initiate_payment(phone_number, amount)
 
-            return response
-        except Exception as e:
-            logging.error(f"Error in PayResource: {str(e)}")
-            return {'error': 'Internal server error'}, 500
+        if 'CheckoutRequestID' not in response:
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
+            return jsonify({'error': 'Failed to initiate payment'}), 500
 
-class PaymentsResource(Resource):
-    def get(self):
-        payments = Payment.query.all()
-        return [{
-            'id': payment.id,
-            'amount': payment.amount,
-            'phone_number': payment.phone_number,
-            'transaction_id': payment.transaction_id,
-            'status': payment.status,
-            'timestamp': payment.timestamp
-        } for payment in payments]
+        return jsonify(response)
 
-api.add_resource(PayResource, '/pay')
-api.add_resource(PaymentsResource, '/payments')
-
+    except Exception as e:
+        logging.error(f"Error in pay route: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
