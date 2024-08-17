@@ -5,6 +5,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
 import os
+import logging
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
