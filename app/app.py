@@ -3,8 +3,7 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
-from .send_email import send_registration_email
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
 from flask_mail import Mail
 
 import os
@@ -149,9 +148,6 @@ def customers():
         db.session.add(new_customer)
         db.session.commit()
         
-        send_registration_email(new_customer)
-
-
         return jsonify({"Message": "Customer was added successfuly"})
 
 
