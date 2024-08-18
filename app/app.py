@@ -3,7 +3,9 @@ from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime, timedelta
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent, PaymentOrganizer
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent, PaymentOrganizer 
+from .email_utils import init_mail, send_registration_email 
+
 import os
 import logging
 import requests
@@ -60,6 +62,24 @@ CORS(app)
 
 # with app.app_context():
 #     db.create_all()
+
+# Email Configuration
+
+app.config['DEBUG'] = True
+app.config['TESTING'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587  
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False  
+app.config['MAIL_DEBUG'] = True
+app.config['MAIL_USERNAME'] = 'vikakamau72@gmail.com'
+app.config['MAIL_PASSWORD'] = 'xpsn opvb qggt vicj'
+app.config['MAIL_DEFAULT_SENDER'] = ('TiketiTamasha' 'vikakamau72@gmail.com')
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+init_mail(app)
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -145,7 +165,14 @@ def customers():
         )
         db.session.add(new_customer)
         db.session.commit()
-        return jsonify({"Message": "Customer was added successfuly"})
+
+        email_status = send_registration_email(new_customer.email, new_customer.customer_name, new_customer.phone_number )
+        
+        if email_status["success"]:
+            return jsonify({'Message': 'Customer was added succesfully and email was sent'}),201
+        else:
+            return jsonify({"Message": "Customer was added, but email failed", "error" : email_status['error']}), 201
+        
 
 
 @app.route("/customer/<int:id>", methods=["GET", "PUT", "DELETE"])
