@@ -2,10 +2,10 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_mail import Mail, Message
 from datetime import datetime
-from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
-from flask_mail import Mail
-
+from models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
+from email_utils import init_mail, send_registration_email, send_registration_email_organizer, send_event_reminder_email
 import os
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
@@ -62,6 +62,24 @@ CORS(app)
 
 # with app.app_context():
 #     db.create_all()
+
+# Email Configuration
+
+app.config['DEBUG'] = True
+app.config['TESTING'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587  
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False  
+app.config['MAIL_DEBUG'] = True
+app.config['MAIL_USERNAME'] = 'vikakamau72@gmail.com'
+app.config['MAIL_PASSWORD'] = 'xpsn opvb qggt vicj'
+app.config['MAIL_DEFAULT_SENDER'] = ('TiketiTamasha' 'vikakamau72@gmail.com')
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+init_mail(app)
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -147,8 +165,14 @@ def customers():
         )
         db.session.add(new_customer)
         db.session.commit()
+
+        email_status = send_registration_email(new_customer.email, new_customer.customer_name, new_customer.phone_number )
         
-        return jsonify({"Message": "Customer was added successfuly"})
+        if email_status["success"]:
+            return jsonify({'Message': 'Customer was added succesfully and email was sent'}),201
+        else:
+            return jsonify({"Message": "Customer was added, but email failed", "error" : email_status['error']}), 201
+        
 
 
 @app.route("/customer/<int:id>", methods=["GET", "PUT", "DELETE"])
@@ -204,12 +228,13 @@ def bookings():
     if request.method == "GET":
         bookings = []
         for book in Booking.query.all():
-            book_dict = book.to_dict(rules=("-ticket", "-customer",))
+            book_dict = book.to_dict()
             bookings.append(book_dict)
         if len(bookings) == 0:
             return jsonify({"Message": "There are no bookings yet"}), 404
         else:
             return make_response(jsonify(bookings), 200)
+
 
     elif request.method == "POST":
         data = request.get_json()
@@ -222,6 +247,26 @@ def bookings():
         db.session.add(new_booking)
         db.session.commit()
         return jsonify({"Message": "Booking done successfuly"})
+def check_events_and_send_reminders():
+    """Check for events happening in 6 days and send reminder emails."""
+    today = datetime.today()
+    reminder_date = today + timedelta(days=6)
+
+    # Query events that are 6 days away
+    upcoming_events = Event.query.filter_by(date=reminder_date).all()
+
+    for event in upcoming_events:
+        # Get bookings for this event
+        bookings = Booking.query.join(Booking.ticket).filter_by(event_id=event.id).all()
+        for booking in bookings:
+            customer = booking.customer  # Access the customer from the booking relationship
+            ticket = booking.ticket  # Access the ticket from the booking relationship
+            send_event_reminder_email(
+                email=customer.email,
+                customer_name=customer.customer_name,
+                event_name=event.name,
+                event_date=event.date
+            )
 
 @app.route('/booking/customer/<int:customer_id>', methods=['GET'])
 def get_booking_by_customer(customer_id):
@@ -240,7 +285,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict(rules=("-organizer", "-venue", "-tickets",))
+            event_dict = event.to_dict(rules=("-organizer", "-tickets",))
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -342,7 +387,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", "-event",))
+            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", ))
             tickets.append(ticket_dict)
         response = make_response(tickets, 200)
         return response
@@ -495,7 +540,14 @@ def organizers():
         )
         db.session.add(new_organizer)
         db.session.commit()
-        return jsonify({"Message": "Organizer was added successfuly"})
+
+        email_status = send_registration_email_organizer(new_organizer.email, new_organizer.organizer_name, new_organizer.phone_number )
+        
+        if email_status["success"]:
+            return jsonify({'Message': 'Customer was added succesfully and email was sent'}),201
+        else:
+            return jsonify({"Message": "Customer was added, but email failed", "error" : email_status['error']}), 201
+        
 
 @app.route("/organizer/<int:id>", methods=["GET", "PUT", "DELETE"])
 def get_organizer(id):
@@ -538,6 +590,9 @@ def get_organizer(id):
         db.session.commit()
 
         return jsonify({"message": "Customer deleted successfully"}), 200
+    
+
+
 
 
 if __name__ == "__main__":

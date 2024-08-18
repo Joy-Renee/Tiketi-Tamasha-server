@@ -19,6 +19,7 @@ flask-swagger-ui = "*"
 flask-jwt = "*"
 flask-jwt-extended = "*"
 flask-bcrypt = "*"
+flask-mail = "*"
 
 [dev-packages]
 
