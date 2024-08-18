@@ -2,17 +2,10 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
-<<<<<<< HEAD
-from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
 from services.email_utils import init_mail, send_registration_email 
 from services.cloudinary_utils import upload_file
-=======
 from datetime import datetime, timedelta
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent, PaymentOrganizer 
-from .email_utils import init_mail, send_registration_email 
-
->>>>>>> 2313627439dd192d722fdf817e7d70f546754bda
 import os
 import logging
 import requests
