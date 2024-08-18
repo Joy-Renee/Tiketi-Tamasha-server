@@ -2,8 +2,8 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
-from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
+from datetime import datetime, timedelta
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent, PaymentOrganizer
 import os
 import logging
 import requests
@@ -12,10 +12,13 @@ from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
 import random
-from datetime import timedelta
 from flask_restful import Resource, Api
 from requests.auth import HTTPBasicAuth
+from flask import g as ctx_stack  # or current_app, depending on usage
+
+
 load_dotenv()
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -234,7 +237,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict(rules=("-organizer", "-venue", "-tickets",))
+            event_dict = event.to_dict(rules=("-organizer", "-tickets",))
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -242,6 +245,8 @@ def events():
             return make_response(jsonify(events), 200)
     elif request.method == "POST":
         data = request.get_json()
+
+        # Create the event
         new_event = Event(
             event_name=data.get("event_name"),
             event_date=data.get("event_date"),
@@ -253,7 +258,55 @@ def events():
         )
         db.session.add(new_event)
         db.session.commit()
-        return jsonify({"Message": "Event created successfuly"})
+
+        # Create tickets for the event
+        tickets_data = data.get("tickets", [])
+
+        # Assuming the tickets data looks something like this:
+        # {
+        #   "early_bird": {"ticket_price": 50.0, "available": 500},
+        #   "regular": {"ticket_price": 100.0, "available": 1500},
+        #   "vip": {"ticket_price": 200.0, "available": 1200}
+        # }
+       
+        if tickets_data:
+            early_bird_data = tickets_data.get("early_bird")
+            regular_data = tickets_data.get("regular")
+            vip_data = tickets_data.get("vip")
+           
+            if early_bird_data:
+                early_bird_ticket = Ticket(
+                    ticket_description="Early Bird",
+                    ticket_price=early_bird_data.get("ticket_price"),
+                    ticket_type="EB",
+                    available=early_bird_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(early_bird_ticket)
+
+            if regular_data:
+                regular_ticket = Ticket(
+                    ticket_description="Regular",
+                    ticket_price=regular_data.get("ticket_price"),
+                    ticket_type="REG",
+                    available=regular_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(regular_ticket)
+
+            if vip_data:
+                vip_ticket = Ticket(
+                    ticket_description="Vip",
+                    ticket_price=vip_data.get("ticket_price"),
+                    ticket_type="VIP",
+                    available=vip_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(vip_ticket)
+
+            db.session.commit()
+
+        return jsonify({"Message": "Event and tickets created successfully"}), 201
 
 
 @app.route("/event/<int:id>", methods=["GET", "PUT", "DELETE"])
@@ -612,3 +665,4 @@ def pay():
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
+
