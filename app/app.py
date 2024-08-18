@@ -2,17 +2,26 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
-from datetime import datetime
-from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer
+from datetime import datetime, timedelta
+from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent, PaymentOrganizer
 import os
+import logging
+import requests
+import base64
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
 import random
-from datetime import timedelta
+from flask_restful import Resource, Api
+from requests.auth import HTTPBasicAuth
+from flask import g as ctx_stack  # or current_app, depending on usage
+
+
 load_dotenv()
 
+
 app = Flask(__name__)
+api = Api(app)
 app.config["JWT_SECRET_KEY"] = "ticketi"+str(random.randint(1,100))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 bcrypt = Bcrypt(app)
@@ -228,7 +237,7 @@ def events():
     if request.method == "GET":
         events = []
         for event in Event.query.all():
-            event_dict = event.to_dict(rules=("-organizer", "-venue", "-tickets",))
+            event_dict = event.to_dict(rules=("-organizer", "-tickets",))
             events.append(event_dict)
         if len(events) == 0:
             return jsonify({"Message": "There are no events yet"}), 404
@@ -236,6 +245,8 @@ def events():
             return make_response(jsonify(events), 200)
     elif request.method == "POST":
         data = request.get_json()
+
+        # Create the event
         new_event = Event(
             event_name=data.get("event_name"),
             event_date=data.get("event_date"),
@@ -247,7 +258,55 @@ def events():
         )
         db.session.add(new_event)
         db.session.commit()
-        return jsonify({"Message": "Event created successfuly"})
+
+        # Create tickets for the event
+        tickets_data = data.get("tickets", [])
+
+        # Assuming the tickets data looks something like this:
+        # {
+        #   "early_bird": {"ticket_price": 50.0, "available": 500},
+        #   "regular": {"ticket_price": 100.0, "available": 1500},
+        #   "vip": {"ticket_price": 200.0, "available": 1200}
+        # }
+       
+        if tickets_data:
+            early_bird_data = tickets_data.get("early_bird")
+            regular_data = tickets_data.get("regular")
+            vip_data = tickets_data.get("vip")
+           
+            if early_bird_data:
+                early_bird_ticket = Ticket(
+                    ticket_description="Early Bird",
+                    ticket_price=early_bird_data.get("ticket_price"),
+                    ticket_type="EB",
+                    available=early_bird_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(early_bird_ticket)
+
+            if regular_data:
+                regular_ticket = Ticket(
+                    ticket_description="Regular",
+                    ticket_price=regular_data.get("ticket_price"),
+                    ticket_type="REG",
+                    available=regular_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(regular_ticket)
+
+            if vip_data:
+                vip_ticket = Ticket(
+                    ticket_description="Vip",
+                    ticket_price=vip_data.get("ticket_price"),
+                    ticket_type="VIP",
+                    available=vip_data.get("available"),
+                    event=new_event
+                )
+                db.session.add(vip_ticket)
+
+            db.session.commit()
+
+        return jsonify({"Message": "Event and tickets created successfully"}), 201
 
 
 @app.route("/event/<int:id>", methods=["GET", "PUT", "DELETE"])
@@ -527,6 +586,83 @@ def get_organizer(id):
 
         return jsonify({"message": "Customer deleted successfully"}), 200
 
+def get_mpesa_access_token():
+    consumer_key = '35KRcaSFHWxRKu3gLWgG3JgpAGUKA78rRA7BjeE2vN529tXJ'
+    consumer_secret = 'xg4wAfPda9wGseSk5AN6yAoV6vAGNp4229esahXvARoxCRhXiCxxj33eR8q6eFp6'
+    api_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+    response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+    token = response.json().get('access_token')
+    return token
+
+# Function to initiate payment
+def initiate_payment(phone_number, amount):
+    try:
+        access_token = get_mpesa_access_token()
+        api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+        headers = {'Authorization': f'Bearer {access_token}'}
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        short_code = '174379'
+        passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+        password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
+
+        # Ensure the phone number is in the correct format
+        phone_number = phone_number.strip()
+        if not phone_number.startswith('254'):
+            phone_number = '254' + phone_number[1:]
+
+        payload = {
+            'BusinessShortCode': short_code,
+            'Password': password,
+            'Timestamp': timestamp,
+            'TransactionType': 'CustomerPayBillOnline',
+            'Amount': amount,
+            'PartyA': phone_number,
+            'PartyB': short_code,
+            'PhoneNumber': phone_number,
+            'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',  # Update this with your callback URL
+            'AccountReference': phone_number,
+            'TransactionDesc': 'Payment for service',
+        }
+
+        logging.info(f"Payload: {payload}")
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()
+        logging.info(f"Response: {response.json()}")
+
+        if 'CheckoutRequestID' not in response.json():
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response.json()}")
+            return {'error': 'Failed to initiate payment'}
+
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error initiating payment: {e}")
+        if e.response:
+            logging.error(f"Response content: {e.response.content}")
+        return {'error': 'Failed to initiate payment'}
+
+# Route to handle payment initiation
+@app.route('/pay', methods=['POST'])
+def pay():
+    try:
+        data = request.get_json()
+        logging.info(f"Received data: {data}")
+
+        phone_number = data.get('phone_number')
+        amount = data.get('amount')
+
+        response = initiate_payment(phone_number, amount)
+
+        if 'CheckoutRequestID' not in response:
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
+            return jsonify({'error': 'Failed to initiate payment'}), 500
+
+        return jsonify(response)
+
+    except Exception as e:
+        logging.error(f"Error in pay route: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
+
