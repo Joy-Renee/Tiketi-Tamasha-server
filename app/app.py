@@ -5,7 +5,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_mail import Mail, Message
 from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
-from services.email_utils import init_mail, send_registration_email, send_registration_email_organizer, send_event_reminder_email
+from .services.email_utils import init_mail, send_registration_email, send_registration_email_organizer, send_event_reminder_email
 import os
 import logging
 import requests
