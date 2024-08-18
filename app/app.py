@@ -217,33 +217,38 @@ def get_customer(id):
         return jsonify({"message": "Customer deleted successfully"}), 200
 
 
+
 @app.route("/bookings", methods=["GET", "POST"])
-@jwt_required()
+@jwt_required()  # This ensures the user is authenticated
 def bookings():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_jwt_identity()  # Now you can access the current user's ID
 
     if request.method == "GET":
         bookings = []
-        for book in Booking.query.all():
-            book_dict = book.to_dict()
+        for book in Booking.query.filter_by(customer_id=current_user_id).all():  # Filter by current user
+            book_dict = book.to_dict(rules=("-ticket", "-customer",))
             bookings.append(book_dict)
+        
         if len(bookings) == 0:
             return jsonify({"Message": "There are no bookings yet"}), 404
         else:
             return make_response(jsonify(bookings), 200)
 
-
     elif request.method == "POST":
         data = request.get_json()
+        print(data) 
 
         new_booking = Booking(
             booking_date=data.get("booking_date"),
             ticket_id=data.get("ticket_id"),
-            customer_id=current_user_id
+            customer_id=current_user_id  # Automatically use the current user's ID
         )
         db.session.add(new_booking)
         db.session.commit()
-        return jsonify({"Message": "Booking done successfuly"})
+
+        return jsonify({"Message": "Booking done successfully"}), 201
+
+
 def check_events_and_send_reminders():
     """Check for events happening in 6 days and send reminder emails."""
     today = datetime.today()
@@ -265,14 +270,15 @@ def check_events_and_send_reminders():
                 event_date=event.date
             )
 
-@app.route('/booking/customer/<int:customer_id>', methods=['GET'])
+@app.route('/booking/<int:customer_id>', methods=['GET'])
 def get_booking_by_customer(customer_id):
-    bookings = Booking.query.filter_by(customer_id=customer_id).all()
-    if not bookings:
-        return jsonify({'message': 'No bookings done yet'}), 404
+    orders = Booking.query.filter_by(customer_id=customer_id).all()
+    if not orders:
+        return jsonify({'message': 'No orders done yet'}), 404
     
-    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in bookings]
+    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in orders]
     return jsonify(bookings_list), 200
+
 
 @app.route("/events", methods=["GET", "POST"])
 # @jwt_required()
@@ -384,7 +390,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", ))
+            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", "-event", ))
             tickets.append(ticket_dict)
         response = make_response(tickets, 200)
         return response
@@ -722,27 +728,6 @@ def initiate_payment(phone_number, amount):
             logging.error(f"Response content: {e.response.content}")
         return {'error': 'Failed to initiate payment'}
 
-# Route to handle payment initiation
-@app.route('/pay', methods=['POST'])
-def pay():
-    try:
-        data = request.get_json()
-        logging.info(f"Received data: {data}")
-
-        phone_number = data.get('phone_number')
-        amount = data.get('amount')
-
-        response = initiate_payment(phone_number, amount)
-
-        if 'CheckoutRequestID' not in response:
-            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
-            return jsonify({'error': 'Failed to initiate payment'}), 500
-
-        return jsonify(response)
-
-    except Exception as e:
-        logging.error(f"Error in pay route: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
