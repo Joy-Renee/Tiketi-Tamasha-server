@@ -6,14 +6,20 @@ from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
 from .email_utils import init_mail, send_registration_email 
 import os
+import logging
+import requests
+import base64
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
 import random
 from datetime import timedelta
+from flask_restful import Resource, Api
+from requests.auth import HTTPBasicAuth
 load_dotenv()
 
 app = Flask(__name__)
+api = Api(app)
 app.config["JWT_SECRET_KEY"] = "ticketi"+str(random.randint(1,100))
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 bcrypt = Bcrypt(app)
@@ -553,6 +559,82 @@ def get_organizer(id):
 
         return jsonify({"message": "Customer deleted successfully"}), 200
 
+def get_mpesa_access_token():
+    consumer_key = '35KRcaSFHWxRKu3gLWgG3JgpAGUKA78rRA7BjeE2vN529tXJ'
+    consumer_secret = 'xg4wAfPda9wGseSk5AN6yAoV6vAGNp4229esahXvARoxCRhXiCxxj33eR8q6eFp6'
+    api_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+    response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+    token = response.json().get('access_token')
+    return token
+
+# Function to initiate payment
+def initiate_payment(phone_number, amount):
+    try:
+        access_token = get_mpesa_access_token()
+        api_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+        headers = {'Authorization': f'Bearer {access_token}'}
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        short_code = '174379'
+        passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+        password = base64.b64encode(f'{short_code}{passkey}{timestamp}'.encode()).decode()
+
+        # Ensure the phone number is in the correct format
+        phone_number = phone_number.strip()
+        if not phone_number.startswith('254'):
+            phone_number = '254' + phone_number[1:]
+
+        payload = {
+            'BusinessShortCode': short_code,
+            'Password': password,
+            'Timestamp': timestamp,
+            'TransactionType': 'CustomerPayBillOnline',
+            'Amount': amount,
+            'PartyA': phone_number,
+            'PartyB': short_code,
+            'PhoneNumber': phone_number,
+            'CallBackURL': 'https://tiketi-tamasha-server.onrender.com/callback',  # Update this with your callback URL
+            'AccountReference': phone_number,
+            'TransactionDesc': 'Payment for service',
+        }
+
+        logging.info(f"Payload: {payload}")
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()
+        logging.info(f"Response: {response.json()}")
+
+        if 'CheckoutRequestID' not in response.json():
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response.json()}")
+            return {'error': 'Failed to initiate payment'}
+
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error initiating payment: {e}")
+        if e.response:
+            logging.error(f"Response content: {e.response.content}")
+        return {'error': 'Failed to initiate payment'}
+
+# Route to handle payment initiation
+@app.route('/pay', methods=['POST'])
+def pay():
+    try:
+        data = request.get_json()
+        logging.info(f"Received data: {data}")
+
+        phone_number = data.get('phone_number')
+        amount = data.get('amount')
+
+        response = initiate_payment(phone_number, amount)
+
+        if 'CheckoutRequestID' not in response:
+            logging.error(f"MPesa API response missing 'CheckoutRequestID': {response}")
+            return jsonify({'error': 'Failed to initiate payment'}), 500
+
+        return jsonify(response)
+
+    except Exception as e:
+        logging.error(f"Error in pay route: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
