@@ -2,10 +2,10 @@ from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_mail import Mail, Message
+from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
-from services.email_utils import init_mail, send_registration_email 
-from services.cloudinary_utils import upload_file
-from datetime import datetime, timedelta
+from services.email_utils import init_mail, send_registration_email, send_registration_email_organizer, send_event_reminder_email
 import os
 import logging
 import requests
@@ -14,13 +14,10 @@ from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
 import random
+from datetime import timedelta
 from flask_restful import Resource, Api
 from requests.auth import HTTPBasicAuth
-from flask import g as ctx_stack  # or current_app, depending on usage
-
-
 load_dotenv()
-
 
 app = Flask(__name__)
 api = Api(app)
@@ -220,16 +217,18 @@ def get_customer(id):
         return jsonify({"message": "Customer deleted successfully"}), 200
 
 
+
 @app.route("/bookings", methods=["GET", "POST"])
-@jwt_required()
+@jwt_required()  # This ensures the user is authenticated
 def bookings():
-    current_user_id = get_jwt_identity()
+    current_user_id = get_jwt_identity()  # Now you can access the current user's ID
 
     if request.method == "GET":
         bookings = []
-        for book in Booking.query.all():
+        for book in Booking.query.filter_by(customer_id=current_user_id).all():  # Filter by current user
             book_dict = book.to_dict(rules=("-ticket", "-customer",))
             bookings.append(book_dict)
+        
         if len(bookings) == 0:
             return jsonify({"Message": "There are no bookings yet"}), 404
         else:
@@ -237,24 +236,49 @@ def bookings():
 
     elif request.method == "POST":
         data = request.get_json()
+        print(data) 
 
         new_booking = Booking(
             booking_date=data.get("booking_date"),
             ticket_id=data.get("ticket_id"),
-            customer_id=current_user_id
+            customer_id=current_user_id  # Automatically use the current user's ID
         )
         db.session.add(new_booking)
         db.session.commit()
-        return jsonify({"Message": "Booking done successfuly"})
 
-@app.route('/booking/customer/<int:customer_id>', methods=['GET'])
+        return jsonify({"Message": "Booking done successfully"}), 201
+
+
+def check_events_and_send_reminders():
+    """Check for events happening in 6 days and send reminder emails."""
+    today = datetime.today()
+    reminder_date = today + timedelta(days=6)
+
+    # Query events that are 6 days away
+    upcoming_events = Event.query.filter_by(date=reminder_date).all()
+
+    for event in upcoming_events:
+        # Get bookings for this event
+        bookings = Booking.query.join(Booking.ticket).filter_by(event_id=event.id).all()
+        for booking in bookings:
+            customer = booking.customer  # Access the customer from the booking relationship
+            ticket = booking.ticket  # Access the ticket from the booking relationship
+            send_event_reminder_email(
+                email=customer.email,
+                customer_name=customer.customer_name,
+                event_name=event.name,
+                event_date=event.date
+            )
+
+@app.route('/booking/<int:customer_id>', methods=['GET'])
 def get_booking_by_customer(customer_id):
-    bookings = Booking.query.filter_by(customer_id=customer_id).all()
-    if not bookings:
-        return jsonify({'message': 'No bookings done yet'}), 404
+    orders = Booking.query.filter_by(customer_id=customer_id).all()
+    if not orders:
+        return jsonify({'message': 'No orders done yet'}), 404
     
-    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in bookings]
+    bookings_list = [booking.to_dict(rules=('-ticket', '-customer')) for booking in orders]
     return jsonify(bookings_list), 200
+
 
 @app.route("/events", methods=["GET", "POST"])
 # @jwt_required()
@@ -295,12 +319,12 @@ def events():
         #   "regular": {"ticket_price": 100.0, "available": 1500},
         #   "vip": {"ticket_price": 200.0, "available": 1200}
         # }
-       
+        
         if tickets_data:
             early_bird_data = tickets_data.get("early_bird")
             regular_data = tickets_data.get("regular")
             vip_data = tickets_data.get("vip")
-           
+            
             if early_bird_data:
                 early_bird_ticket = Ticket(
                     ticket_description="Early Bird",
@@ -334,6 +358,7 @@ def events():
             db.session.commit()
 
         return jsonify({"Message": "Event and tickets created successfully"}), 201
+
 
 
 @app.route("/event/<int:id>", methods=["GET", "PUT", "DELETE"])
@@ -416,7 +441,7 @@ def tickets():
     if request.method == "GET":
         tickets = []
         for ticket in Ticket.query.all():
-            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", "-event",))
+            ticket_dict = ticket.to_dict(rules=("-order", "-bookings", "-event", ))
             tickets.append(ticket_dict)
         response = make_response(tickets, 200)
         return response
