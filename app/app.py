@@ -4,7 +4,8 @@ from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
 from .models import db, Customer, Ticket, Booking, Organizer, Venue, Event, Order, Payment, Rent,PaymentOrganizer 
-from .email_utils import init_mail, send_registration_email 
+from services.email_utils import init_mail, send_registration_email 
+from services.cloudinary_utils import upload_file
 import os
 import logging
 import requests
