@@ -21,6 +21,7 @@ flask-jwt-extended = "*"
 flask-bcrypt = "*"
 requests = "*"
 cloudinary = "*"
+flask-mail = "*"
 
 [dev-packages]
 
