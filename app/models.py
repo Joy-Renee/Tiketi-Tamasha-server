@@ -187,4 +187,4 @@ class PaymentOrganizer(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<Payment {self.id}, {self.amount}, {self.payment_date}, {self.rent_id}>'
-    
+ 
