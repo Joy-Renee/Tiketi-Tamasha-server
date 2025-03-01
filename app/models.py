@@ -36,10 +36,15 @@ class Ticket(db.Model, SerializerMixin):
     ticket_price = db.Column(db.Integer)
     ticket_type = db.Column(db.String)
     available = db.Column(db.Integer)
-
+    order_id=db.Column(db.Integer,db.ForeignKey('orders.id'))
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+    
+    order=db.relationship('Order',back_populates='tickets')
     bookings = db.relationship('Booking', back_populates='ticket', cascade='all, delete-orphan')
+    event = db.relationship('Event', back_populates='tickets')
 
-    serialize_rules = ("-bookings.ticket",)
+
+    serialize_rules = ("-bookings.ticket","-order.tickets", "-event.tickets",)
 
     def __repr__(self):
         return f'<Ticket {self.id}, {self.ticket_description}, {self.ticket_price}, {self.ticket_type}, {self.available}>'
@@ -72,8 +77,9 @@ class Organizer(db.Model, SerializerMixin):
     password = db.Column(db.String(60))
     
     events = db.relationship('Event', back_populates='organizer', cascade='all, delete-orphan')
+    rents = db.relationship('Rent', back_populates='organizer', cascade='all, delete-orphan')
 
-    serialize_rules = ("-events.organizer",)
+    serialize_rules = ("-events.organizer","-rents.organizer",)
 
     def __repr__(self):
         return f'<Organizer {self.id}, {self.organizer_name}, {self.email}, {self.phone_number}, {self.password}>'
@@ -87,13 +93,15 @@ class Venue(db.Model, SerializerMixin):
     address = db.Column(db.String)
     capacity = db.Column(db.Integer)
     image= db.Column(db.String)
+    venue_price=db.Column(db.Float)
     
     events = db.relationship('Event', back_populates='venue', cascade='all, delete-orphan')
+    rents = db.relationship('Rent', back_populates='venue', cascade='all, delete-orphan')
 
-    serialize_rules = ("-events.venue",)
+    serialize_rules = ("-events.venue", "-rents.venue",)
 
     def __repr__(self):
-        return f'<Venue {self.id}, {self.name}, {self.address}, {self.capacity}>'
+        return f'<Venue {self.id}, {self.name}, {self.address}, {self.capacity}, {self.venue_price}>'
 
 
 class Event(db.Model, SerializerMixin):
@@ -110,8 +118,9 @@ class Event(db.Model, SerializerMixin):
     
     organizer = db.relationship('Organizer', back_populates='events')
     venue = db.relationship('Venue', back_populates='events')
+    tickets = db.relationship('Ticket', back_populates='event', cascade='all, delete-orphan')
 
-    serialize_rules = ("-organizer.events", "-venue.events",)
+    serialize_rules = ("-organizer.events", "-venue.events", "-tickets.event",)
 
     def __repr__(self):
         return f"<Event {self.event_name}', '{self.event_date}>"
@@ -126,8 +135,9 @@ class Order(db.Model, SerializerMixin):
 
     customer = db.relationship('Customer', back_populates='orders')
     payment = db.relationship('Payment', back_populates='orders')
+    tickets = db.relationship('Ticket', back_populates='order')
 
-    serialize_rules = ("-customer.orders", "-payment.orders",)
+    serialize_rules = ("-customer.orders", "-payment.orders","-tickets.order")
     def __repr__(self):
         return f'<Order {self.id}, {self.customer_id}, {self.order_date}, {self.order_total}>'
 
@@ -145,3 +155,35 @@ class Payment(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'<Payment {self.id}, {self.amount}, {self.payment_date}>'
+    
+class Rent(db.Model, SerializerMixin):
+    __tablename__ = 'rents'
+
+    id = db.Column(db.Integer, primary_key=True)
+    organizer_id = db.Column(db.Integer, db.ForeignKey('organizers.id'))
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
+    rent_date = db.Column(db.DateTime)
+    total_price = db.Column(db.Float)
+
+    organizer = db.relationship('Organizer', back_populates='rents')
+    venue = db.relationship('Venue', back_populates='rents')
+    paymentsorganizer = db.relationship('PaymentOrganizer', back_populates='rents')
+
+    serialize_rules = ("-venue.rents", "-organizer.rents")
+    def __repr__(self):
+        return f'<Order {self.id}, {self.organizer_id}, {self.venue_id}, {self.rent_date}, {self.total_price}>'
+    
+class PaymentOrganizer(db.Model, SerializerMixin):
+    __tablename__ = 'paymentsorganizer'
+
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float)
+    payment_date = db.Column(db.DateTime)
+    rent_id = db.Column(db.Integer, db.ForeignKey('rents.id'))
+
+    rents = db.relationship('Rent', back_populates='paymentsorganizer')
+
+    serialize_rules = ("-rents.paymentsorganizer",)
+
+    def __repr__(self):
+        return f'<Payment {self.id}, {self.amount}, {self.payment_date}, {self.rent_id}>'

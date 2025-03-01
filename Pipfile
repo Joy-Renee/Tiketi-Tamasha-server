@@ -15,6 +15,12 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 flask-restful = "*"
 python-dotenv = "*"
+flask-swagger-ui = "*"
+flask-jwt = "*"
+flask-jwt-extended = "*"
+flask-bcrypt = "*"
+requests = "*"
+cloudinary = "*"
 
 [dev-packages]
 
