@@ -1,0 +1,498 @@
+openapi: 3.0.0
+info:
+  title: Tiketi Tamasha API
+  description: API for managing ticket and venue booking for events.
+  version: 1.0.0
+servers:
+  - url: https://tiketi-tamasha-server.onrender.com/
+    description: Local server
+
+paths:
+  /customers:
+    get:
+      summary: Get all customers
+      responses:
+        '200':
+          description: A list of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        '404':
+          description: No customers found
+    post:
+      summary: Add a new customer
+      requestBody:
+        description: Customer object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+        required: true
+      responses:
+        '201':
+          description: Customer successfully added
+        '400':
+          description: Bad request
+
+  /customer/{id}:
+    get:
+      summary: Get a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+    put:
+      summary: Update a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer ID
+          schema:
+            type: integer
+      requestBody:
+        description: Customer object with updated details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+        required: true
+      responses:
+        '200':
+          description: Customer successfully updated
+        '404':
+          description: Customer not found
+    delete:
+      summary: Delete a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Customer successfully deleted
+        '404':
+          description: Customer not found
+
+  /bookings:
+    get:
+      summary: Get all bookings
+      responses:
+        '200':
+          description: A list of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '404':
+          description: No bookings found
+    post:
+      summary: Add a new booking
+      requestBody:
+        description: Booking object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      responses:
+        '201':
+          description: Booking successfully added
+        '400':
+          description: Bad request
+
+  /events:
+    get:
+      summary: Get all events
+      responses:
+        '200':
+          description: A list of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '404':
+          description: No events found
+    post:
+      summary: Add a new event
+      requestBody:
+        description: Event object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '201':
+          description: Event successfully created
+        '400':
+          description: Bad request
+
+  /event/{id}:
+    get:
+      summary: Get an event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+    put:
+      summary: Update an event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: integer
+      requestBody:
+        description: Event object with updated details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '200':
+          description: Event successfully updated
+        '404':
+          description: Event not found
+    delete:
+      summary: Delete an event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event successfully deleted
+        '404':
+          description: Event not found
+
+  /venues:
+    get:
+      summary: Get all venues
+      responses:
+        '200':
+          description: A list of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Venue'
+        '404':
+          description: No venues found
+    post:
+      summary: Add a new venue
+      requestBody:
+        description: Venue object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Venue'
+        required: true
+      responses:
+        '201':
+          description: Venue successfully added
+        '400':
+          description: Bad request
+
+  /venues/{id}:
+    patch:
+      summary: Update a venue by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Venue ID
+          schema:
+            type: integer
+      requestBody:
+        description: Venue object with updated details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Venue'
+        required: true
+      responses:
+        '200':
+          description: Venue successfully updated
+        '404':
+          description: Venue not found
+    delete:
+      summary: Delete a venue by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Venue ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Venue successfully deleted
+        '404':
+          description: Venue not found
+
+  /tickets:
+    get:
+      summary: Get all tickets
+      responses:
+        '200':
+          description: A list of tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '404':
+          description: No tickets found
+    post:
+      summary: Add a new ticket
+      requestBody:
+        description: Ticket object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ticket'
+        required: true
+      responses:
+        '201':
+          description: Ticket successfully added
+        '400':
+          description: Bad request
+
+  /tickets/{id}:
+    patch:
+      summary: Update a ticket by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Ticket ID
+          schema:
+            type: integer
+      requestBody:
+        description: Ticket object with updated details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ticket'
+        required: true
+      responses:
+        '200':
+          description: Ticket successfully updated
+        '404':
+          description: Ticket not found
+
+  /orders:
+    get:
+      summary: Get all orders
+      responses:
+        '200':
+          description: A list of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '404':
+          description: No orders found
+    post:
+      summary: Add a new order
+      requestBody:
+        description: Order object to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        '201':
+          description: Order successfully added
+        '400':
+          description: Bad request
+
+  /orders/{id}:
+    get:
+      summary: Get an order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Order ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+    patch:
+      summary: Update an order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Order ID
+          schema:
+            type: integer
+      requestBody:
+        description: Order object with updated details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        '200':
+          description: Order successfully updated
+        '404':
+          description: Order not found
+
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string
+        password:
+          type: string
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingDate:
+          type: string
+          format: date
+        ticketId:
+          type: integer
+        customerId:
+          type: integer
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventName:
+          type: string
+        description:
+          type: string
+        venueId:
+          type: integer
+        eventDate:
+          type: string
+          format: date
+        eventTime:
+          type: string
+          format: tim
+        organizerId:
+          type: integer
+    Venue:
+      type: object
+      properties:
+        id:
+          type: integer
+        venueName:
+          type: string
+        address:
+          type: string
+        capacity:
+          type: integer
+        eventId:
+          type: integer
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        ticketType:
+          type: string
+        available:
+          type: integer
+        eventId:
+          type: integer
+        orderId:
+          type: integer
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        customerId:
+          type: integer
+        orderDate:
+          type: string
+          format: date
+        totalPrice:
+          type: integer
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: number
+          format: float
+        paymentDate:
+          type: string
+          format: date
+        orderId:
+          type: integer
